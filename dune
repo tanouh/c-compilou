@@ -1,0 +1,21 @@
+; (ocamllex
+;  (modules lexer))
+; (menhir
+;  (modules parser))
+; (library
+;   (name eval)
+;   (modules lexer parser ast runtime eval)
+;   (libraries unix)
+; )
+; (executable
+;  (name compilou)
+;  (promote (until-clean))
+;  (modules compilou)
+; ;  (libraries unix eval)
+;  (flags ())
+; )
+; (test
+;  (name test)
+;  (modules test)
+;  (libraries unix eval)
+;  (flags ()))

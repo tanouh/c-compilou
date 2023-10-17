@@ -1,0 +1,32 @@
+image: ocaml/opam:debian
+
+stages:
+  - build
+  - test
+
+.install-utils: &install-utils
+  - opam switch
+  - opam install dune
+  - eval $(opam env)
+
+build:
+  stage: build
+  before_script: *install-utils
+  script:
+    - echo "make"
+  cache:
+    key: $CI_COMMIT_REF_NAME
+    policy: push
+    paths:
+      - _build
+
+test:
+  stage: test
+  before_script: *install-utils
+  script:
+    - echo "make test"
+  cache:
+    key: $CI_COMMIT_REF_NAME
+    policy: pull-push
+    paths:
+      - _build
