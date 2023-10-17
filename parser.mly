@@ -7,24 +7,31 @@
 
 %token <int> CST
 %token <string> IDENT
-%token LET, IN, PRINT, READ
+%token TYPE RETURN IF ELSE 
 %token EOF 
-%token LP RP
-%token PLUS MINUS TIMES DIV
-%token EQ
-%token FUNCTION COLON
+%token LP RP LBRACE RBRACE LB RB 
+%token PLUS MINUS TIMES DIV MOD
+%token SEMICOLON COMMA
+%token AND OR 
+%token EQ EQQ
+%token LEQ GEQ LE GE NEQ
+%token NOT PTR  
 
-/* Définitions des priorités et associativités des tokens */
+/* Definitions des priorites et associativites des tokens */
 
-%nonassoc IN
+%right EQ
+%left OR AND
+%nonassoc EQQ NEQ 
 %left PLUS MINUS 
-%left TIMES DIV
-%nonassoc uminus
+%left TIMES DIV MOD
+%nonassoc uminus 
+%nonassoc utimes
 
-/* Point d'entrée de la grammaire */
+/* Poin
+t d'entree de la grammaire */
 %start prog
 
-/* Type des valeurs retournées par l'analyseur syntaxique */
+/* Type des valeurs retournees par l'analyseur syntaxique */
 %type <Ast.program> prog
 
 %%
