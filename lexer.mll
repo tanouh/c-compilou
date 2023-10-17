@@ -7,7 +7,7 @@
    
   exception Lexing_error of char
     
-  let kwd_tbl = ["let",LET; "in",IN; "print",PRINT; "read",READ; "function", FUNCTION]
+  let kwd_tbl = ["int", INT; "if", IF; "else", ELSE ; "print_int", PRINT_INT; "return",RETURN ]
   let id_or_kwd s = try List.assoc s kwd_tbl with _ -> IDENT s
 
   let newline lexbuf =
@@ -19,7 +19,7 @@
 
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
-let ident = letter (letter | digit)*
+let ident = (letter | '_') (letter | digit | '_')*
 let integer = ['0'-'9']+
 let space = [' ' '\t']
 
@@ -27,16 +27,32 @@ rule token = parse
   | '\n'    { newline lexbuf; token lexbuf }
   | space+  { token lexbuf }
   | ident as id { id_or_kwd id }
+  | ';'     { SEMICOLON }
+  | '=''='  { EQQ } 
+  | '<''='  { LEQ }
+  | '>''='  { GEQ }
+  | '<'     { LE }
+  | '>'     { GE }
+  | '!''='  { NEQ }
+  | '&''&'  { AND } 
+  | '|''|'  { OR } 
+  | '!'     { NOT }
   | '+'     { PLUS }
   | '-'     { MINUS }
   | '*'     { TIMES }
   | '/'     { DIV }
+  | '%'     { MOD }
   | '='     { EQ }
   | '('     { LP }
   | ')'     { RP }
-  | ':'     { COLON }
+  | '{'     { LBRACE}
+  | '}'     { RBRACE }
+  | '['     { LB }
+  | ']'     { RB }
+  | '&'     { PTR }
+  | ','     { COMMA }
   | integer as s { CST (int_of_string s) }
   | eof     { EOF }
-  | _ as c  { raise (Lexing_error c) }
+  | _ as c  { raise (Lexing_error c) } 
  
 
