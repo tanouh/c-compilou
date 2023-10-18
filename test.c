@@ -1,9 +1,7 @@
-#include <stdio.h>
-
 int main() {
-	int x = 5;
-	int y = 1;
-	void k;
-	printf("%d\n",x+++y);
+	int x;
+	x = 5;
+	int y;
+	y = 1;
+	return 0;
 }
-

@@ -37,9 +37,9 @@ let () =
   (* On verifie que le nom du fichier source a bien ete indique *)
   if !ifile="" then begin eprintf "Aucun fichier a compiler\n@?"; exit 1 end;
 
-  (* Ce fichier doit avoir l'extension .exp *)
-  if not (Filename.check_suffix !ifile ".exp") then begin
-    eprintf "Le fichier d'entree doit avoir l'extension .exp\n@?";
+  (* Ce fichier doit avoir l'extension .c *)
+  if not (Filename.check_suffix !ifile ".c") then begin
+    eprintf "Le fichier d'entree doit avoir l'extension .c\n@?";
     Arg.usage options usage;
     exit 1
   end;
