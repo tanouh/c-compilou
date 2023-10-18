@@ -22,7 +22,7 @@ let options =
    "-o", Arg.String (set_file ofile),
    "<file>  Pour indiquer le mom du fichier de sortie"]
 
-let usage = "usage: calc.exe [option] file.exp"
+let usage = "usage: calc.exe [option] file.c"
 
 (* localise une erreur en indiquant la ligne et la colonne *)
 let localisation pos =
