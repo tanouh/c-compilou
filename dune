@@ -1,21 +1,16 @@
-; (ocamllex
-;  (modules lexer))
-; (menhir
-;  (modules parser))
-; (library
-;   (name eval)
-;   (modules lexer parser ast runtime eval)
-;   (libraries unix)
-; )
-; (executable
-;  (name compilou)
-;  (promote (until-clean))
-;  (modules compilou)
-; ;  (libraries unix eval)
-;  (flags ())
-; )
-; (test
-;  (name test)
-;  (modules test)
-;  (libraries unix eval)
-;  (flags ()))
+(ocamllex
+ (modules lexer))
+(menhir
+ (modules parser))
+(executable
+ (name compilou)
+ (promote (until-clean))
+ (modules compilou lexer parser ast compile_mips compilec mips)
+ (libraries unix)
+ (flags ())
+)
+(test
+ (name test)
+ (modules test)
+ (libraries unix)
+ (flags ()))

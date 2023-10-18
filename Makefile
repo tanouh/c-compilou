@@ -1,10 +1,10 @@
 .phony : install build run test
 
 binary:
-	@dune build bin/main.exe
+	@dune build compilou.exe
 
 byte:
-	@dune build bin/main.bc
+	@dune build compilou.bc
 
 clean:
 	@dune clean

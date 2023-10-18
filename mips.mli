@@ -1,5 +1,5 @@
 
-type register = 
+type register =
   | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
 
 type address =
@@ -24,7 +24,7 @@ type instruction =
   | Endfun of string
   | JEnd of string
 
-type data = 
+type data =
   | Asciiz of string * string
   | Word of string * int
 
@@ -34,4 +34,3 @@ type program = {
 }
 
 val print_program : program -> string -> unit
-

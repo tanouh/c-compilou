@@ -4,15 +4,15 @@
 {
   open Lexing
   open Parser
-   
+
   exception Lexing_error of char
-    
-  let kwd_tbl = ["int", INT; "if", IF; "else", ELSE ; "print_int", PRINT_INT; "return",RETURN ]
+
+  let kwd_tbl = ["int", INT; "void", VOID ; "if", IF; "else", ELSE ; "return",RETURN ]
   let id_or_kwd s = try List.assoc s kwd_tbl with _ -> IDENT s
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
-    lexbuf.lex_curr_p <- 
+    lexbuf.lex_curr_p <-
       { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 
 }
@@ -28,14 +28,14 @@ rule token = parse
   | space+  { token lexbuf }
   | ident as id { id_or_kwd id }
   | ';'     { SEMICOLON }
-  | '=''='  { EQQ } 
+  | '=''='  { EQQ }
   | '<''='  { LEQ }
   | '>''='  { GEQ }
   | '<'     { LE }
   | '>'     { GE }
   | '!''='  { NEQ }
-  | '&''&'  { AND } 
-  | '|''|'  { OR } 
+  | '&''&'  { AND }
+  | '|''|'  { OR }
   | '!'     { NOT }
   | '+'     { PLUS }
   | '-'     { MINUS }
@@ -51,8 +51,8 @@ rule token = parse
   | ']'     { RB }
   | '&'     { PTR }
   | ','     { COMMA }
-  | integer as s { CST (int_of_string s) }
+  | integer as s { CST (s) }
   | eof     { EOF }
-  | _ as c  { raise (Lexing_error c) } 
- 
+  | _ as c  { raise (Lexing_error c) }
+
 
