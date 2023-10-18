@@ -2,3 +2,5 @@ _build
 .vscode
 *.exe
 ptipython.exe
+*.s
+*.bc
