@@ -55,15 +55,15 @@ let rec eval_expr hashtab e =
   )
   | Op (op,e1,e2) ->
     (match op with
-    | Add | Sub | Mul | Div | Mod -> match (eval_expr hashtab e1, eval_expr hashtab e2) with 
-      |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith o i1 i2)
-      |(ie1,ie2) -> Binop (op,ie1,ie2)
-    | Leq | Le | Geq | Ge | Neq | Eq -> match (eval_expr hashtab e1, eval_expr hashtab e2) with 
-      |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_comp o i1 i2))
-      |(ie1,ie2) -> Binop (op,ie1,ie2)
-    | And | Or -> match (eval_expr hashtab e1, eval_expr hashtab e2) with 
-      |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond o (bool_of_int i1) (bool_of_int i2)))
-      |(ie1,ie2) -> Binop (op,ie1,ie2)
+    | Add | Sub | Mul | Div | Mod -> (match (eval_expr hashtab e1, eval_expr hashtab e2) with 
+      |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith op i1 i2)
+      |(ie1,ie2) -> Ibinop (op,ie1,ie2))
+    | Leq | Le | Geq | Ge | Neq | Eq -> (match (eval_expr hashtab e1, eval_expr hashtab e2) with 
+      |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_comp op i1 i2))
+      |(ie1,ie2) -> Ibinop (op,ie1,ie2))
+    | And | Or -> (match (eval_expr hashtab e1, eval_expr hashtab e2) with 
+      |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond op (bool_of_int i1) (bool_of_int i2)))
+      |(ie1,ie2) -> Ibinop (op,ie1,ie2))
   )
   | Ecall (name,expl) -> failwith("a faire")
 
