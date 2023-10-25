@@ -1,4 +1,4 @@
-Open Ast
+open Ast
 
 type i_program = (string*i_AST) list * (string*int) list
 and i_AST =
@@ -14,4 +14,4 @@ and i_pos =
 | Ideref of i_expr (* for pointers *)
 and i_expr =
 | Iunop of i_value | Ibinop of binop * i_value * i_value
-| Icall of i_pos * string * int (* label + offset *)
+| Icall of i_pos * string * int * i_expr list(* label + offset *) | Ileft of i_left_value | Iconst of int
