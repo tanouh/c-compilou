@@ -2,8 +2,10 @@ open Ast
 
 type i_program = (string*i_AST) list * (string*int) list
 and i_AST =
-| Iif of i_expr*i_AST*i_AST | Iblock of i_AST list
-| Ireturn of i_expr | Iassign of i_left_value*i_expr
+| Iif of i_expr*i_AST*i_AST 
+| Iblock of i_AST list
+| Ireturn of i_expr 
+| Iassign of i_left_value*i_expr
 | Ival of i_expr
 and i_left_value = i_pos * int (* position in memory and size *)
 and i_pos =

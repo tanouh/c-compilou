@@ -67,7 +67,7 @@ let rec eval_expr hashtab e =
   )
   | Ecall (name,expl) -> Icall(Iglobal name, name, 0, List.map (eval_expr hashtab) expl) (* 0 à modifier *)
 
-let compile_stmt (stmt,_pos) =
+let compile_stmt hashtable_loc (stmt,_pos) =
   match stmt with
   | Sassign (l,exp) ->
     (match l with
@@ -84,6 +84,6 @@ let hashtable_loc = Hashtbl.create 20
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
-  let code = List.map (fun x -> compile_stmt hashtable_loc (x,0)) p |> List.concat in
+  let code = List.map (fun x -> let hashtable_loc = Hashtbl.create 1 in compile_stmt hashtable_loc (x,0)) p |> List.concat in
   let p = to_mips { text = code; data = [] } in
   Mips.print_program p ofile
