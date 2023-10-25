@@ -41,7 +41,7 @@ let rec eval_expr hashtab e =
   | Val v -> (match v with
     | Var x -> (match Hashtbl.find_opt hashtab x with
       | None -> raise (Error "undefined value")
-      | Some i -> Iconst i)
+      | Some i -> i)
     | Tab (a,b) -> failwith("on verra après")
   )
   | Moins e ->
@@ -67,17 +67,19 @@ let rec eval_expr hashtab e =
   )
   | Ecall (name,expl) -> Icall(Iglobal name, name, 0, List.map (eval_expr hashtab) expl) (* 0 à modifier *)
 
-let compile_stmt hashtab (stmt,pos) =
+let compile_stmt hashtab (stmt,_pos) =
   match stmt with
   | Sassign (l,exp) ->
-    match l with
-    | Var x -> Hashtbl.add hashtab x (eval_expr hashtab exp)
-    | Tab (a,b) -> failwith("on verra après")
-  | Sval e -> eval_expr hashtab e
+    (match l with
+    | Var x -> let expeval = eval_expr hashtab exp in Hashtbl.add hashtab x expeval ; Iassign ("mdr",expeval)
+    | Tab (a,b) -> failwith("on verra après"))
+  | Sval e -> let expr = eval_expr hashtab e in Ival expr
   | _ -> failwith("a faire")
+
+let hashtable_loc = Hashtbl.create 20
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
-  let code = List.map compile_stmt p |> List.concat in
+  let code = List.map (fun x -> compile_stmt hashtable_loc (x,0)) p |> List.concat in
   let p = to_mips { text = code; data = [] } in
   Mips.print_program p ofile
