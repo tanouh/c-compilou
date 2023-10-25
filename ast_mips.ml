@@ -11,5 +11,8 @@ and i_pos =
 | Iglobal of string (* label *)
 | Ideref of i_expr (* for pointers *)
 and i_expr =
-| Iunop of i_expr | Ibinop of binop * i_expr * i_expr
-| Icall of i_pos * string * int * i_expr list(* label + offset *) | Ileft of i_left_value | Iconst of int
+| Iunop of i_expr 
+| Ibinop of binop * i_expr * i_expr
+| Icall of i_pos * string * int * i_expr list(* label + offset *) 
+| Ileft of i_left_value 
+| Iconst of int
