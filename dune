@@ -5,7 +5,7 @@
 (executable
  (name compilou)
  (promote (until-clean))
- (modules compilou lexer parser ast compile_mips compilec mips)
+ (modules compilou lexer parser ast compile_mips compilec mips ast_mips)
  (libraries unix)
  (flags ())
 )

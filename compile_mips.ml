@@ -1,7 +1,7 @@
 (* Production de code pour notre langage *)
 
 open Mips
-open Ast
+open Ast_mips
 
 module StrMap = Map.Make (String)
 
