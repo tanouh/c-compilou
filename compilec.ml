@@ -54,7 +54,6 @@ let rec eval_expr hashtab e =
     | _ -> raise (Error "expression invalide")
   )
   | Op (op,e1,e2) ->
-<<<<<<< Updated upstream
     (match o with
     | Add | Sub | Mul | Div | Mod -> match (eval_expr e1, eval_expr e2) with 
       |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith o i1 i2)
@@ -67,12 +66,6 @@ let rec eval_expr hashtab e =
       |_ -> Op (op,e1,e2)
   )
   | Array l -> VArray (List.map eval_expr l)
-=======
-    (match op with
-    | Add | Sub | Mul | Div | Mod -> VInt ((convert_arith op) (eval_expr hashtab e1) (eval_expr hashtab e2))
-    | Leq | Le | Geq | Ge | Neq | Eq -> VInt (int_of_bool ((convert_comp op) (eval_expr hashtab e1) (eval_expr hashtab e2)))
-    | And | Or -> VInt (int_of_bool ((convert_cond op) (bool_of_int (eval_expr hashtab e1)) (bool_of_int (eval_expr hashtab e2)))))
->>>>>>> Stashed changes
   | Ecall (name,expl) -> failwith("a faire")
 
 let compile_stmt hashtab (stmt,pos) =
