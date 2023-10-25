@@ -1,6 +1,6 @@
 
 type register =
-  | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
+  ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
 
 type address =
   | Alab of string
