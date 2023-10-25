@@ -74,6 +74,10 @@ let compile_stmt (stmt,_pos) =
     | Var x -> let expeval = eval_expr exp in Hashtbl.add hashtab x expeval ; Iassign ("mdr",expeval)
     | Tab (a,b) -> failwith("on verra après"))
   | Sval e -> let expr = eval_expr hashtab e in Ival expr
+  | Sreturn r -> let expr = eval_expr hashtab e in Ireturn expr
+  | Sblock b -> List.iter compile_stmt b ; Iblock b
+  | Sdeclarevar (typ,var) -> (match var with
+    | Var x -> Hashtbl.add hashtab x (Iconst 0) ; Iassign (var,Iconst 0))
   | _ -> failwith("a faire")
 
 let hashtable_loc = Hashtbl.create 20

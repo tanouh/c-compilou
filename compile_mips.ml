@@ -23,7 +23,7 @@ let pop_tmp =
 
 let rec compile_i_ast = function
   | Iif (e, a, b) -> []
-  | Iblock a -> []
+  | Iblock a -> List.map compile_i_ast a |> List.concat
   | Ireturn e -> []
   | Iassign (l,e) -> compile_i_assign (l,e)
   | Ival e -> compile_i_expr e
@@ -34,12 +34,9 @@ and compile_i_left_value (ipos,size) = match ipos with
 and compile_i_const_value k = [Li (V0, k)]
 and compile_i_unop v = 
   (compile_i_expr v) @ [Arithi (Mul, V0, V0, -1)] 
-and compile_i_binop op a b = 
-  match op with 
-  | Add -> []
-  | Sub -> []
-  | Mul -> []
-  | Div -> []
+and compile_i_op op = 
+  match op with
+  |Add | Sub | Mul | Div -> [Arith (op, V0, A0, V0)]
   | Mod -> []
   | Leq -> []
   | Le -> []
@@ -48,7 +45,17 @@ and compile_i_binop op a b =
   | Neq -> []
   | Eq -> []
   | And -> []
-  | Or -> []
+  | Or-> []
+and compile_i_binop op a b = 
+  match b with
+  | Iconst k -> (compile_i_expr  (Iconst k)) @ [Li (A0, k)] @ compile_i_op op
+  | _ ->
+        let l = (compile_i_expr  a) @ push_tmp in
+        l @ (compile_i_expr b)
+        @ [ Lw (A0, Areg (4, SP)) ] 
+        @ compile_i_op op 
+        @ pop_tmp
+
 and compile_i_assign (l,e) = 
   let tmp = compile_i_expr e and (ipos, size) = l in 
   match ipos with 
