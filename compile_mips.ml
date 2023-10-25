@@ -30,11 +30,9 @@ let rec compile_i_ast = function
 | Ireturn e -> []
   | Iassign (l,e) -> []
 | Ival e -> []
-
 and compile_i_left_value = function
 | Ileft l -> []
 | Iconst k -> []
-
 and compile_i_pos = function
 | Ilocal offset (* offset to FP *) -> []
 | Iglobal label (* label *) -> []
@@ -52,7 +50,7 @@ let compile_stmt programlist = ()
 
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
-let compile_program p ofile =
-  let code = List.map compile_stmt p |> List.concat in
+let compile_program (p,data) ofile =
+  let code = List.map compile_i_ast p |> List.concat in
   let p = { text = code; data = List.of_seq (Hashtbl.to_seq_values gvars) } in
   Mips.print_program p ofile
