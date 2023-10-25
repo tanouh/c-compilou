@@ -1,5 +1,6 @@
 open Ast
 open Mips
+open Ast_mips
 
 module StrMap = Map.Make (String)
 
@@ -8,10 +9,6 @@ exception Error of string
 let make_ast () = 5
 
 let to_mips program = program
-
-type value =
-| VInt of int
-| VArray of int list
 
 let convert_arith (o:binop) = match o with
 | Add -> (+)
@@ -58,9 +55,16 @@ let rec eval_expr hashtab e =
   )
   | Op (op,e1,e2) ->
     (match o with
-    | Add | Sub | Mul | Div | Mod -> VInt ((convert_arith o) (eval_expr e1) (eval_expr e2))
-    | Leq | Le | Geq | Ge | Neq | Eq -> VInt (int_of_bool ((convert_comp o) (eval_expr e1) (eval_expr e2)))
-    | And | Or -> VInt (int_of_bool ((convert_cond o) (bool_of_int (eval_expr e1)) (bool_of_int (eval_expr e2)))))
+    | Add | Sub | Mul | Div | Mod -> match (eval_expr e1, eval_expr e2) with 
+      |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith o i1 i2)
+      |_ -> Op (op,e1,e2)
+    | Leq | Le | Geq | Ge | Neq | Eq -> match (eval_expr e1, eval_expr e2) with 
+      |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_comp o i1 i2))
+      |_ -> Op (op,e1,e2)
+    | And | Or -> match (eval_expr e1, eval_expr e2) with 
+      |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_arith o (bool_of_int i1) (bool_of_int i2)))
+      |_ -> Op (op,e1,e2)
+  )
   | Array l -> VArray (List.map eval_expr l)
   | Ecall (name,expl) -> failwith("a faire")
 
