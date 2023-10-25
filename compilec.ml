@@ -65,7 +65,7 @@ let rec eval_expr hashtab e =
       |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond op (bool_of_int i1) (bool_of_int i2)))
       |(ie1,ie2) -> Ibinop (op,ie1,ie2))
   )
-  | Ecall (name,expl) -> failwith("a faire")
+  | Ecall (name,expl) -> Icall(Iglobal name, name, 0, List.map (eval_expr hashtab) expl) (* 0 à modifier *)
 
 let compile_stmt hashtab (stmt,pos) =
   match stmt with
