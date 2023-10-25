@@ -67,11 +67,11 @@ let rec eval_expr hashtab e =
   )
   | Ecall (name,expl) -> Icall(Iglobal name, name, 0, List.map (eval_expr hashtab) expl) (* 0 à modifier *)
 
-let compile_stmt hashtab (stmt,_pos) =
+let compile_stmt (stmt,_pos) =
   match stmt with
   | Sassign (l,exp) ->
     (match l with
-    | Var x -> let expeval = eval_expr hashtab exp in Hashtbl.add hashtab x expeval ; Iassign ("mdr",expeval)
+    | Var x -> let expeval = eval_expr exp in Hashtbl.add hashtab x expeval ; Iassign ("mdr",expeval)
     | Tab (a,b) -> failwith("on verra après"))
   | Sval e -> let expr = eval_expr hashtab e in Ival expr
   | _ -> failwith("a faire")
