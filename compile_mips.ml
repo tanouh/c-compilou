@@ -21,32 +21,30 @@ let pop_tmp =
    (* sp_aux := !sp_aux - 1; *)
    [Arithi (Add, SP, SP, 4)]
 
-let compile_print  = ()
-
-
+let compile_i_const_value = function
+  | Iconst k -> [Li (V0, k)]
+let compile_i_val = function
+  | Ileft e -> compile_i_left_value e 
+  | Iconst i -> compile_i_const_value i 
+let rec compile_i_assign = function
+  | 
+  |
 let rec compile_i_ast = function
   | Iif (e, a, b) -> []
   | Iblock a -> []
-| Ireturn e -> []
+  | Ireturn e -> []
   | Iassign (l,e) -> []
-| Ival e -> []
+  | Ival e -> compile_i_val e 
 and compile_i_left_value = function
-| Ileft l -> []
-| Iconst k -> []
+  | Ileft (ipos,l) -> [Arithi(Add, V0, l), Sw (V0, Areg (4*ipos, FP))]
 and compile_i_pos = function
-| Ilocal offset (* offset to FP *) -> []
-| Iglobal label (* label *) -> []
-| Ideref p (* for pointers *) -> []
+  | Ilocal offset (* offset to FP *) -> []
+  | Iglobal label (* label *) -> []
+  | Ideref p (* for pointers *) -> []
 and compile_i_expr = function
-| Iunop v -> []
-| Ibinop (op, a, b) ->  []
-| Icall  (pos, label, offset) -> []
-
-
-
-
-let compile_stmt programlist = ()
-
+  | Iunop v -> []
+  | Ibinop (op, a, b) ->  []
+  | Icall  (pos, label, offset) -> []
 
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)

@@ -1,5 +1,5 @@
-type register =
-  | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
+type register = 
+  |ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
 
 type address =
   | Alab of string
@@ -34,6 +34,7 @@ type program = {
 open Format
 
 let string_register = function
+  | ZERO -> "$zero"
   | A0 -> "$a0"
   | A1 -> "$a1"
   | V0 -> "$v0"

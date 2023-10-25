@@ -1,3 +1,5 @@
+Open Ast
+
 type i_program = (string*i_AST) list * (string*int) list
 and i_AST =
 | Iif of i_expr*i_AST*i_AST | Iblock of i_AST list
