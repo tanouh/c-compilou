@@ -37,23 +37,24 @@ let bool_of_int i = if i=0 then false else true
 
 let rec eval_expr hashtab e =
   match e with
-  | Const Int c -> VInt(int_of_string c)
+  | Const Int c -> Iconst(int_of_string c)
   | Val v -> (match v with
     | Var x -> (match Hashtbl.find_opt hashtab x with
       | None -> raise (Error "undefined value")
-      | Some i -> VInt i)
+      | Some i -> Iconst i)
     | Tab (a,b) -> failwith("on verra après")
   )
   | Moins e ->
     (match eval_expr hashtab e with
-    | Const Int c -> VInt (-1 * int_of_string c)
+    | Iconst c -> Iconst (-1 * c)
     | _ -> raise (Error "expression invalide"))
   | Not n -> (
-    match eval_expr n with
-    | Const Int c -> if c=0 then VInt 1 else VInt 0
+    match eval_expr hashtab n with
+    | Iconst c -> if c=0 then Iconst 1 else Iconst 0
     | _ -> raise (Error "expression invalide")
   )
   | Op (op,e1,e2) ->
+<<<<<<< Updated upstream
     (match o with
     | Add | Sub | Mul | Div | Mod -> match (eval_expr e1, eval_expr e2) with 
       |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith o i1 i2)
@@ -66,15 +67,21 @@ let rec eval_expr hashtab e =
       |_ -> Op (op,e1,e2)
   )
   | Array l -> VArray (List.map eval_expr l)
+=======
+    (match op with
+    | Add | Sub | Mul | Div | Mod -> VInt ((convert_arith op) (eval_expr hashtab e1) (eval_expr hashtab e2))
+    | Leq | Le | Geq | Ge | Neq | Eq -> VInt (int_of_bool ((convert_comp op) (eval_expr hashtab e1) (eval_expr hashtab e2)))
+    | And | Or -> VInt (int_of_bool ((convert_cond op) (bool_of_int (eval_expr hashtab e1)) (bool_of_int (eval_expr hashtab e2)))))
+>>>>>>> Stashed changes
   | Ecall (name,expl) -> failwith("a faire")
 
 let compile_stmt hashtab (stmt,pos) =
   match stmt with
   | Sassign (l,exp) ->
     match l with
-    | Var x -> Hashtbl.add hashtab x (eval_expr exp)
+    | Var x -> Hashtbl.add hashtab x (eval_expr hashtab exp)
     | Tab (a,b) -> failwith("on verra après")
-  | Sval e -> eval_expr e
+  | Sval e -> eval_expr hashtab e
   | _ -> failwith("a faire")
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)

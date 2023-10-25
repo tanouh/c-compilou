@@ -1,5 +1,6 @@
 _build
 .vscode
+.DS_Store
 *.exe
 ptipython.exe
 *.s
