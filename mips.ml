@@ -1,4 +1,4 @@
-type register = 
+type register =
   | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
 
 type address =
@@ -22,8 +22,8 @@ type instruction =
   | Comment of string
   | Endfun of string
   | JEnd of string
-             
-type data = 
+
+type data =
   | Asciiz of string * string
   | Word of string * int
 type program = {
@@ -43,7 +43,7 @@ let string_register = function
   | GP -> "$gp"
   | T i -> "$t"^(string_of_int i )
   | S i -> "$t"^(string_of_int i )
-         
+
 let string_arith = function
   | Add -> "add"
   | Sub -> "sub"
@@ -56,7 +56,7 @@ let string_address = function
 
 
 let string_instruction = function
-  | Move (dst, src) -> 
+  | Move (dst, src) ->
       "\tmove\t"^(string_register dst)^", "^(string_register src)
   | Li (r, i) ->
      "\tli\t"^(string_register r)^", "^(string_of_int i)
@@ -78,7 +78,7 @@ let string_instruction = function
   | JEnd s -> "\tj\tend_"^s
 
 let string_data = function
-  | Asciiz (l, s) -> 
+  | Asciiz (l, s) ->
       l^":\t.asciiz '"^(String.escaped s)^"'"
   | Word (l, n) ->
      l^": \t.word "^(string_of_int n)
