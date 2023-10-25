@@ -1,11 +1,11 @@
 type register = 
-  | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
+  | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int | HI | LO
 
 type address =
   | Alab of string
   | Areg of int * register
 
-type arith  = Add | Sub | Mul | Div
+type arith  = Add | Sub | Mul | Div | Mod | Leq | Le | Geq | Ge | Neq | Eq | And | Or
 
 type instruction =
   | Move of register * register
@@ -44,12 +44,24 @@ let string_register = function
   | GP -> "$gp"
   | T i -> "$t"^(string_of_int i )
   | S i -> "$t"^(string_of_int i )
+  | HI ->"$hi"
+  | LO -> "$lo"
 
 let string_arith = function
   | Add -> "add"
   | Sub -> "sub"
   | Mul -> "mul"
   | Div -> "div"
+  | Mod -> "mult"
+  | Leq -> ""
+  | Le -> ""
+  | Geq -> ""
+  | Ge -> ""
+  | Neq -> ""
+  | Eq -> ""
+  | And -> "and"
+  | Or-> "or"
+
 
 let string_address = function
   | Alab s ->  s (* Adress label *)

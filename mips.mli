@@ -1,12 +1,13 @@
 
 type register =
-  | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int
+  | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int | HI | LO
+
 
 type address =
   | Alab of string
   | Areg of int * register
 
-type arith = Add | Sub | Mul | Div
+type arith = Add | Sub | Mul | Div | Mod | Leq | Le | Geq | Ge | Neq | Eq | And | Or
 
 type instruction =
   | Move of register * register
