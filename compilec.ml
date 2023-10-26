@@ -35,33 +35,33 @@ let convert_cond o = match o with
 let int_of_bool b = if b then 1 else 0
 let bool_of_int i = if i=0 then false else true
 
-let rec eval_expr hashtab e =
+let rec eval_expr hashtable_loc e =
   match e with
   | Const Int c -> Iconst(int_of_string c)
   | Val v -> (match v with
-    | Var x -> (match Hashtbl.find_opt hashtab x with
+    | Var x -> (match Hashtbl.find_opt hashtable_loc x with
       | None -> raise (Error "undefined value")
       | Some i -> i)
     | Tab (a,b) -> failwith("on verra après")
   )
   | Moins e ->
-    (match eval_expr hashtab e with
+    (match eval_expr hashtable_loc e with
     | Iconst c -> Iconst (-1 * c)
     | _ -> raise (Error "expression invalide"))
   | Not n -> (
-    match eval_expr hashtab n with
+    match eval_expr hashtable_loc n with
     | Iconst c -> if c=0 then Iconst 1 else Iconst 0
     | _ -> raise (Error "expression invalide")
   )
   | Op (op,e1,e2) ->
     (match op with
-    | Add | Sub | Mul | Div | Mod -> (match (eval_expr hashtab e1, eval_expr hashtab e2) with 
+    | Add | Sub | Mul | Div | Mod -> (match (eval_expr hashtable_loc e1, eval_expr hashtable_loc e2) with 
       |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith op i1 i2)
       |(ie1,ie2) -> Ibinop (op,ie1,ie2))
-    | Leq | Le | Geq | Ge | Neq | Eq -> (match (eval_expr hashtab e1, eval_expr hashtab e2) with 
+    | Leq | Le | Geq | Ge | Neq | Eq -> (match (eval_expr hashtable_loc e1, eval_expr hashtable_loc e2) with 
       |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_comp op i1 i2))
       |(ie1,ie2) -> Ibinop (op,ie1,ie2))
-    | And | Or -> (match (eval_expr hashtab e1, eval_expr hashtab e2) with 
+    | And | Or -> (match (eval_expr hashtable_loc e1, eval_expr hashtable_loc e2) with 
       |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond op (bool_of_int i1) (bool_of_int i2)))
       |(ie1,ie2) -> Ibinop (op,ie1,ie2))
   )
@@ -71,19 +71,22 @@ let compile_stmt hashtable_loc (stmt,_pos) =
   match stmt with
   | Sassign (l,exp) ->
     (match l with
-    | Var x -> let expeval = eval_expr exp in Hashtbl.add hashtab x expeval ; Iassign ("mdr",expeval)
+    | Var x -> if Hashtbl.mem hashtable_loc x then (let expeval = eval_expr exp in Hashtbl.add hashtable_loc x expeval ; 
+    Iassign (x,expeval)) else raise (Error "variable undefined")
     | Tab (a,b) -> failwith("on verra après"))
-  | Sval e -> let expr = eval_expr hashtab e in Ival expr
-  | Sreturn r -> let expr = eval_expr hashtab e in Ireturn expr
+  | Sval e -> let expr = eval_expr hashtable_loc e in Ival expr
+  | Sreturn r -> let expr = eval_expr hashtable_loc e in Ireturn expr
   | Sblock b -> List.iter compile_stmt b ; Iblock b
   | Sdeclarevar (typ,var) -> (match var with
-    | Var x -> Hashtbl.add hashtab x (Iconst 0) ; Iassign (var,Iconst 0))
+    | Var x -> Hashtbl.add hashtable_loc x (Iconst 0) ; Iassign (var,Iconst 0))
   | _ -> failwith("a faire")
 
 let hashtable_loc = Hashtbl.create 20
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
-  let code = List.map (fun x -> let hashtable_loc = Hashtbl.create 1 in compile_stmt hashtable_loc (x,0)) p |> List.concat in
+  let code = List.map (fun x -> match x.body with 
+    | None -> (x.name,Iassign((Iglobal x.name, 4),Iconst 0) (* à modifier car comment gérer la déclaration de variable, convention à définir *)
+    | Some x_body -> let hashtable_loc = Hashtbl.create 1 in (x.name, compile_stmt hashtable_loc (x_body,0)))) p |> List.concat in
   let p = to_mips { text = code; data = [] } in
   Mips.print_program p ofile
