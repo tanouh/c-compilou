@@ -1,5 +1,4 @@
 open Ast
-open Mips
 open Ast_mips
 
 module StrMap = Map.Make (String)
@@ -65,28 +64,31 @@ let rec eval_expr hashtable_loc e =
       |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond op (bool_of_int i1) (bool_of_int i2)))
       |(ie1,ie2) -> Ibinop (op,ie1,ie2))
   )
-  | Ecall (name,expl) -> Icall(Iglobal name, name, 0, List.map (eval_expr hashtab) expl) (* 0 à modifier *)
+  | Ecall (name,expl) -> Icall(Iglobal name, name, 0, List.map (eval_expr hashtable_loc) expl) (* 0 à modifier *)
+  | _ -> raise (Error " Array à faire plus tard")
 
-let compile_stmt hashtable_loc (stmt,_pos) =
+let rec compile_stmt hashtable_loc (stmt,_pos) =
   match stmt with
-  | Sassign (l,exp) ->
+  | (Sassign (l,exp), pos) ->
     (match l with
-    | Var x -> if Hashtbl.mem hashtable_loc x then (let expeval = eval_expr exp in Hashtbl.add hashtable_loc x expeval ; 
-    Iassign (x,expeval)) else raise (Error "variable undefined")
+    | Var x -> if Hashtbl.mem hashtable_loc x then (let exp_eval = eval_expr hashtable_loc exp in Hashtbl.add hashtable_loc x exp_eval ; 
+    Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error "variable indéfinie")  (* Assignement de variable à définir*)
     | Tab (a,b) -> failwith("on verra après"))
-  | Sval e -> let expr = eval_expr hashtable_loc e in Ival expr
-  | Sreturn r -> let expr = eval_expr hashtable_loc e in Ireturn expr
-  | Sblock b -> List.iter compile_stmt b ; Iblock b
-  | Sdeclarevar (typ,var) -> (match var with
-    | Var x -> Hashtbl.add hashtable_loc x (Iconst 0) ; Iassign (var,Iconst 0))
-  | _ -> failwith("a faire")
+  | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
+  | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
+  | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,0)) b))
+  | (Sdeclarevar (typ,var) , pos) -> (match var with
+    | Var x -> if typ = Dint then (Hashtbl.add hashtable_loc x (Iconst 0) ; Iassign ((Ilocal 0,4),Iconst 0) )
+    else raise (Error "une variable ne peut pas être de type void") (* Assignement de variable à définir*)
+    | Tab (a,b) -> raise (Error "à faire"))
+  | _ -> raise (Error "à faire")
 
 let hashtable_loc = Hashtbl.create 20
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
   let code = List.map (fun x -> match x.body with 
-    | None -> (x.name,Iassign((Iglobal x.name, 4),Iconst 0) (* à modifier car comment gérer la déclaration de variable, convention à définir *)
-    | Some x_body -> let hashtable_loc = Hashtbl.create 1 in (x.name, compile_stmt hashtable_loc (x_body,0)))) p |> List.concat in
-  let p = to_mips { text = code; data = [] } in
-  Mips.print_program p ofile
+    | None -> (x.name,Iassign((Iglobal x.name, 4),Iconst 0))(* à modifier car comment gérer la déclaration de variable, convention à définir *)
+    | Some x_body -> let hashtable_loc = Hashtbl.create 1 in (x.name, compile_stmt hashtable_loc (x_body,0))) p |> List.concat in
+  code(* let p = to_mips { text = code; data = [] } in
+  Mips.print_program p ofile *)
