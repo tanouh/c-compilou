@@ -24,7 +24,7 @@ type instruction =
   | Comment of string
   | Endfun of string
   | JEnd of string
-
+  | End_of_program
 type data =
   | Asciiz of string * string
   | Word of string * int

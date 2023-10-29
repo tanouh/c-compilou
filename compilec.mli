@@ -1,3 +1,3 @@
 exception Error of string
 
-val compile_program : 'a list -> string -> unit
+val compile_program : Ast.def list -> string -> unit

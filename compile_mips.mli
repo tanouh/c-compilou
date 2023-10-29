@@ -1,8 +1,5 @@
 
-exception VarUndef of string
-  (** exception levée pour signaler une variable non déclarée *)
-
-val compile_program : Ast.program -> string -> unit
-  (** [compile_program p f] compile le programme [p] et écrit le code MIPS
+val to_mips : Ast_mips.i_program -> string -> unit
+  (** [compile_program p f] compile le programme [p] et ï¿½crit le code MIPS
       correspondant dans le fichier [f] *)
 

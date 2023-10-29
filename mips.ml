@@ -1,4 +1,4 @@
-type register = 
+type register =
   | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int | HI | LO
 
 type address =
@@ -22,6 +22,7 @@ type instruction =
   | Comment of string
   | Endfun of string
   | JEnd of string
+  | End_of_program
 
 type data =
   | Asciiz of string * string
@@ -89,6 +90,7 @@ let string_instruction = function
   | Label s ->  s^":"
   | Endfun s -> "end_"^s^":"
   | JEnd s -> "\tj\tend_"^s
+  | End_of_program -> "\tli $v0, 10\n\tsyscall"
 
 let string_data = function
   | Asciiz (l, s) ->
@@ -100,13 +102,9 @@ let print_program p out_filename =
   let add s =
      Printf.fprintf out_file "%s\n" s;
   in
-  add ".text";
-  add "main:";
-  List.iter (fun e -> string_instruction e |> add ) p.text  ;
-  add "end:\n
-  \tli $v0, 10\n
-  \tsyscall";
   add ".data";
   List.iter (fun e -> string_data e |> add ) p.data ;
+  add ".text";
+  List.iter (fun e -> string_instruction e |> add ) p.text  ;
   close_out out_file
 
