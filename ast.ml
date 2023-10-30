@@ -17,7 +17,6 @@ and const =
   | Bool of bool *)
   (* | Non *)
 and left_value =
-  | Tab of expr*expr
   | Var of string
 
 and expr =
