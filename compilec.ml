@@ -70,13 +70,13 @@ let rec compile_stmt hashtable_loc (stmt,_pos) =
   match stmt with
   | (Sassign (l,exp), pos) ->
     (match l with
-    | Var x -> if Hashtbl.mem hashtable_loc x then (let exp_eval = eval_expr hashtable_loc exp in Hashtbl.add hashtable_loc x exp_eval ;
+    | Var x -> if Hashtbl.mem hashtable_loc x then (let exp_eval = eval_expr hashtable_loc exp in Hashtbl.replace hashtable_loc x exp_eval ;
     Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error "variable indéfinie")  (* Assignement de variable à définir*)
     | Tab (a,b) -> failwith("on verra après"))
   | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,0)) b))
-  | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.add hashtable_loc x (Iconst 0) ; No_op )
+  | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.replace hashtable_loc x (Iconst 0) ; No_op )
     else raise (Error "une variable ne peut pas être de type void") (* Assignement de variable à définir*)
   
   (* | _ -> raise (Error "à faire") *)
