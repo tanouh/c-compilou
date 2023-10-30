@@ -6,7 +6,7 @@ open Errors
 let functions = Hashtbl.create 10
 
 let load_print_int =
-  Hashtbl.replace functions "print_int" { ret_type = Dvoid ; name = "print_int" ; body = None ; args = [] }
+  Hashtbl.replace functions "print_int"  ( Dvoid ; [] ) 
 
 let convert_arith (o:binop) = match o with
 | Add -> (+)
@@ -66,8 +66,17 @@ let rec eval_expr hashtable_loc e =
   | _ -> raise (Error " Array à faire plus tard")
 
   and check_call hashtable_loc name expl =
-    if Hashtbl.mem functions name then Icall(name, List.map (eval_expr hashtable_loc) expl)
-    else raise (Error ("Undefined function "^name))(* TODO: check the type + check if funtion exist*)
+    if Hashtbl.mem functions name then (
+      let args_compile =  List.map (eval_expr hashtable_loc) expl in
+      if (List.map (fun x -> match x with 
+          | Icall( s , expr_l) -> let ( ret_type ,args_ls) = Hashtbl.find s in 
+            ret_type 
+          | _ -> Dint ) args_compile = (fst (Hashtbl.find name ) )) then 
+        Icall(name, args_compile)
+      else 
+        raise (Error (" wrong arguments for " ^ name))
+    )
+    else raise (Error ("Undefined function "^name)) (* TODO: check the type + check if funtion exist*)
 
 let rec compile_stmt hashtable_loc (stmt,_pos) =
   match stmt with
