@@ -79,18 +79,12 @@ let () =
 	eprintf "Erreur dans l'analyse lexicale: %c@." c;
 	exit 1
     | Parser.Error ->
-	(* Erreur syntaxique. On recupere sa position absolue et on la
+	  (* Erreur syntaxique. On recupere sa position absolue et on la
 	   convertit en numero de ligne *)
 	localisation (Lexing.lexeme_start_p buf);
 	eprintf "Erreur dans l'analyse syntaxique@.";
 	exit 1
-    | Error s->
-	(* Erreur d'utilisation de variable pendant la compilation *)
-	eprintf
-	  "%s\n" s;
-	exit 1
-
-
-
-
-
+    | Error (msg, pos_lnum)->
+    (* Erreur d'utilisation de variable pendant la compilation *)
+    eprintf "%s.c:%d: error: %s\n" !iflie pos_lnum msg ;
+    exit 1

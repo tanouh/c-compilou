@@ -1,1 +1,1 @@
-exception Error of string
+exception Error of string * int (* nom erreur * ligne de l'erreur*) 
