@@ -1,6 +1,6 @@
 
 type register =
-  | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int | HI | LO
+  | ZERO | A of int  | V of int  | RA | SP | GP | FP | T of int | S of int | HI | LO
 
 
 type address =

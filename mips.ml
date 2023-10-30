@@ -1,5 +1,5 @@
 type register =
-  | ZERO | A0 | A1 | V0  | RA | SP | GP | FP | T of int | S of int | HI | LO
+  | ZERO | A of int | V of int  | RA | SP | GP | FP | T of int | S of int | HI | LO
 
 type address =
   | Alab of string
@@ -45,9 +45,8 @@ open Format
 
 let string_register = function
   | ZERO -> "$zero"
-  | A0 -> "$a0"
-  | A1 -> "$a1"
-  | V0 -> "$v0"
+  | A(i) -> "$a"^(string_of_int i)
+  | V(i) -> "$v"^(string_of_int i)
   | RA -> "$ra"
   | SP -> "$sp"
   | FP -> "$fp"
