@@ -81,8 +81,6 @@ let rec compile_stmt hashtable_loc (stmt,_pos) =
   
   (* | _ -> raise (Error "à faire") *)
 
-let hashtable_loc = Hashtbl.create 20
-
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
 
