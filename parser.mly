@@ -48,9 +48,12 @@ suite: b = simple_stmt ; SEMICOLON { b }
   | s = stmt+ ; { Sblock(s),$startpos }
 ;
 
+arg:
+arg_t = dtype ; name = IDENT; {(arg_t, name)}
+
 def :
-| ret = dtype ; s = IDENT; LP ; args = separated_list(COMMA,IDENT) ; RP ; SEMICOLON {{ret_type = ret ; name = s ; args = args ; body = None }}
-| ret = dtype ; s = IDENT ; LP ; args = separated_list(COMMA,IDENT) ; RP ; LBRACE ; b = suite ; RBRACE
+| ret = dtype ; s = IDENT; LP ; args = separated_list(COMMA, arg) ; RP ; SEMICOLON {{ret_type = ret ; name = s ; args = args ; body = None }}
+| ret = dtype ; s = IDENT ; LP ; args = separated_list(COMMA, arg) ; RP ; LBRACE ; b = suite ; RBRACE
 {{ret_type = ret ; name = s ; args = args ; body = Some (b) }}
 
 left_value:

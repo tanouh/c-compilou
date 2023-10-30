@@ -29,8 +29,9 @@ and expr =
   | Ecall of string*expr list
 and binop = Add | Sub | Mul | Div | Mod | Leq | Le | Geq | Ge | Neq | Eq | And | Or
 and dtype = Dint | Dvoid
+and farg = dtype * string
 
-type def = { ret_type : dtype ; name : string ; body : stmt option ; args : string list ; }
+type def = { ret_type : dtype ; name : string ; body : stmt option ; args : farg list ; }
 and cprogram = def list
 
 let str_op = function

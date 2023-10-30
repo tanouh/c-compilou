@@ -5,6 +5,7 @@ Fichier principal du compilateur d'expression
 
 open Format
 open Lexing
+open Errors
 
 (* Option de compilation, pour s'arreter a l'issue du parser *)
 let parse_only = ref false
@@ -83,7 +84,7 @@ let () =
 	localisation (Lexing.lexeme_start_p buf);
 	eprintf "Erreur dans l'analyse syntaxique@.";
 	exit 1
-    | Compilec.Error s->
+    | Error s->
 	(* Erreur d'utilisation de variable pendant la compilation *)
 	eprintf
 	  "%s\n" s;

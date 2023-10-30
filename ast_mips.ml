@@ -1,6 +1,6 @@
 open Ast
 
-type i_program = (string*int* i_AST) list * (string*int) list (* (fun_name * nb_local_var * body ) * (label * size) *)
+type i_program = (string*int*int* i_AST) list * (string*int) list (* (fun_name * nb_local_var * nb_args * body ) * (label * size) *)
 and i_AST =
 | Iif of i_expr*i_AST*i_AST
 | Iblock of i_AST list
@@ -19,3 +19,4 @@ and i_expr =
 | Icall of string * i_expr list(* label *)
 | Ileft of i_left_value
 | Iconst of int
+| IUndef
