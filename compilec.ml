@@ -40,7 +40,6 @@ let rec eval_expr hashtable_loc e =
     | Var x -> (match Hashtbl.find_opt hashtable_loc x with
       | None -> raise (Error "undefined value")
       | Some i -> i)
-    | Tab (a,b) -> failwith("on verra après")
   )
   | Moins e ->
     (match eval_expr hashtable_loc e with
@@ -71,14 +70,13 @@ let rec compile_stmt hashtable_loc (stmt,_pos) =
   | (Sassign (l,exp), pos) ->
     (match l with
     | Var x -> if Hashtbl.mem hashtable_loc x then (let exp_eval = eval_expr hashtable_loc exp in Hashtbl.replace hashtable_loc x exp_eval ;
-    Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error "variable indéfinie")  (* Assignement de variable à définir*)
-    | Tab (a,b) -> failwith("on verra après"))
+    Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error "variable indéfinie")  (* Assignement de variable à définir*))
   | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,0)) b))
   | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.replace hashtable_loc x (Iconst 0) ; No_op )
     else raise (Error "une variable ne peut pas être de type void") (* Assignement de variable à définir*)
-  
+
   (* | _ -> raise (Error "à faire") *)
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
@@ -89,6 +87,7 @@ let compile_program p ofile =
     | Some x_body -> let hashtable_loc = Hashtbl.create 5 in let body = compile_stmt hashtable_loc (x_body,0) in
       print_int (Hashtbl.length hashtable_loc);
       print_newline ();
+      Seq.iter (fun x -> print_string x; print_newline()) (Hashtbl.to_seq_keys hashtable_loc);
       (x.name, Hashtbl.length hashtable_loc ,body) in
   let code = List.map aux p in
   to_mips (code,[]) ofile

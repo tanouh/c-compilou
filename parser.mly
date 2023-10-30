@@ -55,7 +55,6 @@ def :
 
 left_value:
 | s = IDENT { Var(s) }
-| l = expr; LB ; e = expr ; RB { Tab(l,e) }
 
 simple_stmt:
   | RETURN ; e = expr { Sreturn(e), $startpos }
