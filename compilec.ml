@@ -90,6 +90,8 @@ let compile_program p ofile =
   let aux x = match x.body with
   | None -> (x.name, 0 ,Iassign((Iglobal x.name, 4),Iconst 0))(* à modifier car comment gérer la déclaration de variable, convention à définir *)
   | Some x_body -> let hashtable_loc = Hashtbl.create 5 in let body = compile_stmt hashtable_loc (x_body,0) in
+  print_int (Hashtbl.length hashtable_loc);
+  print_newline ();
   (x.name, Hashtbl.length hashtable_loc ,body) in
   let code = List.map aux p in
   to_mips (code,[]) ofile

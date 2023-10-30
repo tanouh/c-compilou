@@ -9,5 +9,7 @@ int main() {
 	x = 5;
 	int y;
 	y = 2*x + 10 * 5 + 2;
+	int z;
+	z = y % x;
 	return 0;
 }

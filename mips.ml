@@ -5,7 +5,7 @@ type address =
   | Alab of string
   | Areg of int * register
 
-type arith  = Add | Sub | Mul | Div | Mod | Leq | Le | Geq | Ge | Neq | Eq | And | Or
+type arith  = Add | Sub | Mul | Div
 
 type instruction =
   | Move of register * register
@@ -14,9 +14,18 @@ type instruction =
   | Sw of register * address
   | Arith of arith * register * register * register
   | Arithi of arith * register * register * int
+  |Arith_div of register * register
+  | Slt of register * register *register
+  | Sltu of register * register *int
+  | Xori of register * register * int
+  | Xor of register * register * register
+  | And of register * register * register
+  | Or of register * register * register
   | Jal of string
   | J of string
   | Jr of register
+  | Mfhi of register
+  | Mflo of register
   | Syscall
   | Label of string
   | Comment of string
@@ -53,20 +62,13 @@ let string_arith = function
   | Sub -> "sub"
   | Mul -> "mul"
   | Div -> "div"
-  | Mod -> "mult"
-  | Leq -> ""
-  | Le -> ""
-  | Geq -> ""
-  | Ge -> ""
-  | Neq -> ""
-  | Eq -> ""
-  | And -> "and"
-  | Or-> "or"
 
 
 let string_address = function
   | Alab s ->  s (* Adress label *)
   | Areg (ofs, r) -> (string_of_int ofs)^"("^(string_register r)^")"
+
+
 
 
 let string_instruction = function
@@ -82,9 +84,27 @@ let string_instruction = function
      "\t"^(string_arith op)^"\t"^(string_register dst)^","^(string_register src)^","^(string_register src2)
   | Arithi (op, dst, src, src2) ->
      "\t"^(string_arith op)^"\t"^(string_register dst)^","^(string_register src)^","^(string_of_int src2)
+  | Arith_div (src, src2) ->
+    "\tdiv\t"^(string_register src)^","^(string_register src2)
+  | Slt (dst, src, src2) ->
+    "\tslt\t"^(string_register dst)^","^(string_register src)^","^(string_register src2)
+  | Sltu (dst, src, src2) ->
+    "\tsltu\t"^(string_register dst)^","^(string_register src)^","^(string_of_int src2)
+  | Xori (dst, src, src2) -> "\txori\t"^(string_register dst)^","^(string_register src)^","^(string_of_int src2)
+  | Xor (dst, src, src2) ->
+    "\txor\t"^(string_register dst)^","^(string_register src)^","^(string_register src2)
+  | And (dst, src, src2) ->
+      "\tand\t"^(string_register dst)^","^(string_register src)^","^(string_register src2)
+  | Or (dst, src, src2) ->
+    "\tor\t"^(string_register dst)^","^(string_register src)^","^(string_register src2)
+  | Mfhi dst ->
+    "\tmfhi\t"^(string_register dst)
+  | Mflo dst ->
+    "\tmflo\t"^(string_register dst)
   | Jal s -> "\tjal\t"^s
   | J s -> "\tj\t"^s
   | Jr r -> "\tjr\t"^(string_register r)
+
   | Syscall -> "\tsyscall"
   | Comment s ->  "\t "^s
   | Label s ->  s^":"

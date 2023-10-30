@@ -46,11 +46,18 @@ let get_var_addr size offset =
 let i_print_int =
   [ Li (V0, 1); Syscall; Li (V0, 11); Li (A0, 10); Syscall ]
 
+let arith_of_binop = function
+| Ast.Add -> Mips.Add
+| Ast.Sub -> Mips.Sub
+|Ast.Div -> Mips.Div
+| Ast.Mul -> Mips.Mul
+| _ -> failwith "non equivalent"
+
 
 let rec compile_i_ast = function
   | Iif (e, a, b) -> []
   | Iblock a -> List.map compile_i_ast a |> List.concat
-  | Ireturn e -> []
+  | Ireturn e -> compile_i_expr e
   | Iassign (l,e) -> compile_i_assign (l,e)
   | Ival e -> compile_i_expr e
   |No_op -> []
@@ -61,18 +68,18 @@ and compile_i_left_value (ipos,size) = match ipos with
 and compile_i_const_value k = [Li (V0, k)]
 and compile_i_unop v =
   (compile_i_expr v) @ [Arithi (Mul, V0, V0, -1)]
-and compile_i_op op =
+and compile_i_op (op:Ast.binop) =
   match op with
-  |Add | Sub | Mul | Div -> [Arith (op, V0, A0, V0)]
-  | Mod -> []
-  | Leq -> []
-  | Le -> []
-  | Geq -> []
-  | Ge -> []
-  | Neq -> []
-  | Eq -> []
-  | And -> []
-  | Or-> []
+  |Add | Sub | Mul | Div -> [Arith (arith_of_binop op, V0, A0, V0)]
+  | Mod -> [Arith_div(V0, A0); Mfhi V0]
+  | Leq -> [Slt(V0, V0, A0); Xori(V0, V0, 1)] (* a <= b = ! b < a*)
+  | Le -> [Slt(V0, A0, V0)]
+  | Geq -> [Slt(V0, V0, A0); Xori(V0, V0, 1)]
+  | Ge -> [Slt(V0, V0, A0)]
+  | Neq -> [Sltu(V0, V0, 1)]
+  | Eq -> [Xor(V0, A0, V0); Sltu(V0, V0, 1)]
+  | And -> [And(V0, A0, V0)]
+  | Or-> [Or(V0, A0,V0)]
 and compile_i_binop op a b =
   match b with
   | Iconst k -> (compile_i_expr a) @ [Li (A0, k)] @ compile_i_op op
@@ -93,7 +100,7 @@ and compile_i_expr = function
   | Iconst k -> compile_i_const_value k
   | Ileft lv ->  compile_i_left_value lv
   | Iunop v -> compile_i_unop v
-  | Ibinop (op, a, b) -> [] (*compile_i_binop op a b *)
+  | Ibinop (op, a, b) ->  compile_i_binop op a b
   | Icall  (label, body) -> []
 
 
