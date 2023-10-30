@@ -16,7 +16,7 @@ let convert_arith (o:binop) = match o with
 | Mod -> (mod)
 | _ -> raise (Error "pas une op arithmétique")
 
-let convert_comp o = match o with
+let convert_comp (o:binop) = match o with
 | Leq -> (<=)
 | Le -> (<)
 | Geq -> (>=)
@@ -25,7 +25,7 @@ let convert_comp o = match o with
 | Eq -> (=)
 | _ -> raise (Error "pas une op de comparaison")
 
-let convert_cond o = match o with
+let convert_cond (o:binop) = match o with
 | And -> (&&)
 | Or -> (||)
 | _ -> raise (Error "pas and ou or")
@@ -76,10 +76,9 @@ let rec compile_stmt hashtable_loc (stmt,_pos) =
   | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,0)) b))
-  | (Sdeclarevar (typ,var) , pos) -> (match var with
-    | Var x -> if typ = Dint then (Hashtbl.add hashtable_loc x (Iconst 0) ; No_op )
+  | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.add hashtable_loc x (Iconst 0) ; No_op )
     else raise (Error "une variable ne peut pas être de type void") (* Assignement de variable à définir*)
-    | Tab (a,b) -> raise (Error "à faire"))
+  
   (* | _ -> raise (Error "à faire") *)
 
 let hashtable_loc = Hashtbl.create 20
@@ -88,11 +87,11 @@ let hashtable_loc = Hashtbl.create 20
 let compile_program p ofile =
 
   let aux x = match x.body with
-  | None -> (x.name, 0 ,Iassign((Iglobal x.name, 4),Iconst 0))(* à modifier car comment gérer la déclaration de variable, convention à définir *)
-  | Some x_body -> let hashtable_loc = Hashtbl.create 5 in let body = compile_stmt hashtable_loc (x_body,0) in
-  print_int (Hashtbl.length hashtable_loc);
-  print_newline ();
-  (x.name, Hashtbl.length hashtable_loc ,body) in
+    | None -> (x.name, 0 ,Iassign((Iglobal x.name, 4),Iconst 0))(* à modifier car comment gérer la déclaration de variable, convention à définir *)
+    | Some x_body -> let hashtable_loc = Hashtbl.create 5 in let body = compile_stmt hashtable_loc (x_body,0) in
+      print_int (Hashtbl.length hashtable_loc);
+      print_newline ();
+      (x.name, Hashtbl.length hashtable_loc ,body) in
   let code = List.map aux p in
   to_mips (code,[]) ofile
 
