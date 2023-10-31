@@ -50,7 +50,8 @@ let arith_of_binop = function
   | _ -> failwith "non equivalent"
 
 let rec compile_i_ast = function
-  | Iif (e, a, b) -> []
+  | Iif (e, b_if) -> compile_i_if e b_if
+  | Iifelse (e, b_if, b_else) -> []
   | Iblock a -> List.map compile_i_ast a |> List.concat
   | Ireturn e -> compile_i_expr e
   | Iassign (l, e) -> compile_i_assign (l, e)
@@ -148,6 +149,10 @@ and i_print_int res = function
             Syscall;
           ])
         l'
+and compile_i_if e b_if =
+  let cond = compile_i_expr e
+  and compile_i_ast b_if in
+  [Bgez]
 
 let allocate_args nb_args =
   let rec loop_ai i stop=

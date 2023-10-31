@@ -8,9 +8,9 @@ and stmt_node =
   | Sassign of left_value*expr
   | Sval of expr
   | Sdeclarevar of dtype * left_value
-  (* | Sif of expr*stmt
+  | Sif of expr*stmt
   | Sifelse of expr*stmt*stmt
-  | Swhile of expr*stmt *)
+  (* | Swhile of expr*stmt *)
 and const =
   | Int of string
   (* | Str of string

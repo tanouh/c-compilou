@@ -103,7 +103,7 @@ let string_instruction = function
   | Jal s -> "\tjal\t"^s
   | J s -> "\tj\t"^s
   | Jr r -> "\tjr\t"^(string_register r)
-
+  | Bgtz (r, pc) -> "\tbgtz\t"^(string_register r)^","^(string_of_int pc)
   | Syscall -> "\tsyscall"
   | Comment s ->  "\t "^s
   | Label s ->  s^":"

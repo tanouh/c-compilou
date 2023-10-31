@@ -84,6 +84,20 @@ let rec eval_expr hashtable_loc e =
     )
     else raise (Error_no_pos ("Undefined function "^name)) (* TODO: check the type + check if funtion exist*)
 
+let compile_if hashtable_loc cond body =
+  let e = eval_expr hashtable_loc cond in
+  match e with
+    | Iconst k -> if k <> 0 then body else No_op
+    | Icall(name,_) -> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iif(e, body)
+    | _ -> Iif(e, body)
+
+let compile_if_else hashtable_loc cond body_if body_else =
+  let e = eval_expr hashtable_loc cond in
+  match e with
+    | Iconst k -> if k <> 0 then body_if else body_else
+    | Icall(name,_) -> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iifelse(e, body_if, body_else)
+    | _ -> Iifelse(e, body_if, body_else)
+
 let rec compile_stmt hashtable_loc (stmt,pos) = try (
   match stmt with
   | (Sassign (l,exp)) ->
@@ -96,14 +110,17 @@ let rec compile_stmt hashtable_loc (stmt,pos) = try (
   | (Sval e) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b) -> Iblock (List.map (compile_stmt hashtable_loc) b)
+  | Sif (cond, stmt) -> compile_if hashtable_loc cond (compile_stmt hashtable_loc stmt)
+  | Sifelse (cond, e_if, e_else) -> No_op
   | (Sdeclarevar (typ,Var x)) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
     else (
       if typ = Dint then (Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef) ; No_op )
-      else raise (Error_no_pos (x ^ " canno't be of type <void>"))
+      else raise (Error_no_pos (x ^ " cannot be of type <void>"))
       )(* Assignement de variable à définir*)
   ) with
     | Error_no_pos s -> raise (Error (s,pos))
   (* | _ -> raise (Error_no_pos "à faire") *)
+
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =

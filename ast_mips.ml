@@ -2,7 +2,8 @@ open Ast
 
 type i_program = (string*int*int* i_AST) list * (string*int) list (* (fun_name * nb_local_var * nb_args * body ) * (label * size) *)
 and i_AST =
-| Iif of i_expr*i_AST*i_AST
+| Iif of i_expr*i_AST
+| Iifelse of i_expr*i_AST*i_AST
 | Iblock of i_AST list
 | Ireturn of i_expr
 | Iassign of i_left_value*i_expr

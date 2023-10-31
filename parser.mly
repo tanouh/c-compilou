@@ -70,8 +70,12 @@ simple_stmt:
 stmt:
 | s = simple_stmt ; SEMICOLON  { s }
 // | FOR ; s = IDENT ; IN ; e = expr ; COLON ; b = suite  {Sfor(s,e,b), $startpos}
-// | IF ; cond = expr ; COLON ; b = suite  {Sif(cond, b), $startpos}
-// | IF ; cond = expr ; COLON ; b = suite ; ELSE ; COLON ; e = suite  {Sifelse(cond,b,e), $startpos}
+| IF ; LP ; cond = expr ; RP ; b = simple_stmt; SEMICOLON  {Sif(cond, b), $startpos}
+| IF ; LP; cond = expr ; RP ; b = simple_stmt; SEMICOLON ; ELSE ;  e = simple_stmt; SEMICOLON;  {Sifelse(cond,b,e), $startpos}
+| IF ; LP ; cond = expr ; RP ; LB ; b = suite; RB {Sif(cond, b), $startpos}
+| IF ; LP; cond = expr ; RP ; LB; b = suite; RB ; ELSE ; LB  e = suite; RB;  {Sifelse(cond,b,e), $startpos}
+| IF ; LP; cond = expr ; RP ; LB; b = suite; RB ; ELSE ;  e = simple_stmt; SEMICOLON;  {Sifelse(cond,b,e), $startpos}
+| IF ; LP; cond = expr ; RP ; b = simple_stmt; SEMICOLON ; RB ; ELSE ; LB  e = suite; RB;  {Sifelse(cond,b,e), $startpos}
 // | WHILE ; cond = expr ; COLON; b = suite {Swhile(cond,b), $startpos}
 ;
 

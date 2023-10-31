@@ -23,6 +23,7 @@ type instruction =
   | Xor of register * register * register
   | And of register * register * register
   | Or of register * register * register
+  | Bgtz of register * int
   | Jal of string
   | J of string
   | Jr of register
