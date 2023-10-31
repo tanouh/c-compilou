@@ -70,12 +70,17 @@ let rec eval_expr hashtable_loc e =
   and check_call hashtable_loc name expl =
     if Hashtbl.mem functions name then (
       let args_compile =  List.map (eval_expr hashtable_loc) expl in (* on compile d'abord les arguments que prends la fonction name*)
-      if (List.map (fun x -> match x with
+      let expr_to_type expr = match expr with 
         | Icall( s , expr_l) -> fst (Hashtbl.find functions s )
-        | _ -> Dint ) args_compile = snd (Hashtbl.find functions name) ) then
-        Icall(name, args_compile)
-      else
-        raise (Error_no_pos (" wrong arguments for " ^ name))
+        | _ -> Dint 
+       in
+      match name with 
+        | "print_int" -> if List.mem Dvoid (List.map expr_to_type args_compile) then raise (Error_no_pos ("wrong arguments for print_int")) 
+        else Icall(name,args_compile)
+        | _ -> 
+          if (List.map expr_to_type args_compile = snd (Hashtbl.find functions name) ) then Icall(name, args_compile)
+          else
+            raise (Error_no_pos (" wrong arguments for " ^ name))
     )
     else raise (Error_no_pos ("Undefined function "^name)) (* TODO: check the type + check if funtion exist*)
 
