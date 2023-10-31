@@ -45,6 +45,7 @@ for file in tests/*.c; do
         printf "$RED%s$CLEAR\n" "[FAILED]"
         FAILED_TEST=$file,$FAILED_TEST
     else
+        rm "${file%.c}.log"
         printf "$GREEN%s$CLEAR\n" "[DONE]"
     fi
 

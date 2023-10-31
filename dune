@@ -1,12 +1,21 @@
 (ocamllex
  (modules lexer))
+
 (menhir
  (modules parser))
+
 (executable
  (name compilou)
  (promote (until-clean))
- (modules compilou lexer parser ast compile_mips compilec mips ast_mips errors)
+ (modules
+  compilou
+  lexer
+  parser
+  ast
+  compile_mips
+  compilec
+  mips
+  ast_mips
+  errors)
  (libraries unix)
- (flags ())
-)
-
+ (flags ()))
