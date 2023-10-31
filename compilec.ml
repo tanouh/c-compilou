@@ -191,8 +191,9 @@ let compile_program p ofile =
     else  *) (* ajoute la nouvelle variable gloable/fonction à la table*)
     Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
     match x.body with
-    | Sno_op ,pos -> (x.name, 0, 0, No_op) (* c'est une variables globale *)
-    | x_body -> let hashtable_loc = Hashtbl.create 5 in (* créé la table des variables locales à la fonction x.name *)
+    | Sno_op ,pos -> if Hashtbl.find functions_corps_existe x.name then Hashtbl.add functions x.name (x.ret_type, List.map fst x.args)
+    else raise (Error("error: undefined reference to `" ^ x.name ^ "'", pos)); (x.name, 0, 0, No_op) (* c'est une variables globale *)
+    | x_body -> Hashtbl.replace functions x.name (x.ret_type, List.map fst x.args) ;let hashtable_loc = Hashtbl.create 5 in (* créé la table des variables locales à la fonction x.name *)
     List.iteri (fun i (t,name) -> Hashtbl.replace hashtable_loc name (i, Ileft (Ilocal i,4))) x.args; (*declare les arguments, permettant de gérer l'utilisation des arguments comme une variable locale à la fonction*)
     let body = compile_stmt x.name hashtable_loc x_body in
       (x.name, Hashtbl.length hashtable_loc, List.length x.args, body) in
