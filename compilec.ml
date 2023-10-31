@@ -3,10 +3,12 @@ open Ast_mips
 open Compile_mips
 open Errors
 
+exception Error_no_pos of string 
+
 let functions = Hashtbl.create 10
 
 let load_print_int =
-  Hashtbl.replace functions "print_int"  ( Dvoid ; [] ) 
+  Hashtbl.replace functions "print_int"  ( Dvoid , [] ) 
 
 let convert_arith (o:binop) = match o with
 | Add -> (+)
@@ -14,7 +16,7 @@ let convert_arith (o:binop) = match o with
 | Mul -> ( * )
 | Div -> (/)
 | Mod -> (mod)
-| _ -> raise (Error "pas une op arithmétique")
+| _ -> raise (Error_no_pos "pas une op arithmétique")
 
 let convert_comp (o:binop) = match o with
 | Leq -> (<=)
@@ -23,12 +25,12 @@ let convert_comp (o:binop) = match o with
 | Ge -> (>)
 | Neq -> (!=)
 | Eq -> (=)
-| _ -> raise (Error "pas une op de comparaison")
+| _ -> raise (Error_no_pos "pas une op de comparaison")
 
 let convert_cond (o:binop) = match o with
 | And -> (&&)
 | Or -> (||)
-| _ -> raise (Error "pas and ou or")
+| _ -> raise (Error_no_pos "pas and ou or")
 
 let int_of_bool b = if b then 1 else 0
 let bool_of_int i = if i=0 then false else true
@@ -38,17 +40,17 @@ let rec eval_expr hashtable_loc e =
   | Const Int c -> Iconst(int_of_string c)
   | Val v -> (match v with
     | Var x -> (match Hashtbl.find_opt hashtable_loc x with
-      | None -> raise (Error "Undefined value")
+      | None -> raise (Error_no_pos "Undefined value")
       | Some i -> i)
   )
   | Moins e ->
     (match eval_expr hashtable_loc e with
     | Iconst c -> Iconst (-1 * c)
-    | _ -> raise (Error "Invalid expression"))
+    | _ -> raise (Error_no_pos "Invalid expression"))
   | Not n -> (
     match eval_expr hashtable_loc n with
     | Iconst c -> if c=0 then Iconst 1 else Iconst 0
-    | _ -> raise (Error "Invalid expression")
+    | _ -> raise (Error_no_pos "Invalid expression")
   )
   | Op (op,e1,e2) ->
     (match op with
@@ -63,34 +65,34 @@ let rec eval_expr hashtable_loc e =
       |(ie1,ie2) -> Ibinop (op,ie1,ie2))
   )
   | Ecall (name,expl) -> check_call hashtable_loc name expl
-  | _ -> raise (Error " Array à faire plus tard")
+  | _ -> raise (Error_no_pos " Array à faire plus tard")
 
   and check_call hashtable_loc name expl =
     if Hashtbl.mem functions name then (
-      let args_compile =  List.map (eval_expr hashtable_loc) expl in
+      let args_compile =  List.map (eval_expr hashtable_loc) expl in (* on compile d'abord les arguments que prends la fonction name*)
       if (List.map (fun x -> match x with 
-          | Icall( s , expr_l) -> let ( ret_type ,args_ls) = Hashtbl.find s in 
-            ret_type 
-          | _ -> Dint ) args_compile = (fst (Hashtbl.find name ) )) then 
+          | Icall( s , expr_l) -> fst Hashtbl.find s functions 
+          | _ -> Dint ) args_compile = (fst (Hashtbl.find name functions) )) then 
         Icall(name, args_compile)
       else 
-        raise (Error (" wrong arguments for " ^ name))
+        raise (Error_no_pos (" wrong arguments for " ^ name))
     )
-    else raise (Error ("Undefined function "^name)) (* TODO: check the type + check if funtion exist*)
+    else raise (Error_no_pos ("Undefined function "^name)) (* TODO: check the type + check if funtion exist*)
 
-let rec compile_stmt hashtable_loc (stmt,_pos) =
+let rec compile_stmt hashtable_loc (stmt,_pos) = try (
   match stmt with
   | (Sassign (l,exp), pos) ->
     (match l with
     | Var x -> if Hashtbl.mem hashtable_loc x then (let exp_eval = eval_expr hashtable_loc exp in Hashtbl.replace hashtable_loc x exp_eval ;
-    Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error ("Undefined variable "^x))  (* Assignement de variable à définir*))
+    Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error_no_pos ("Undefined variable "^x))  (* Assignement de variable à définir*))
   | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,0)) b))
   | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.replace hashtable_loc x (IUndef) ; No_op )
-    else raise (Error (x^" canno't be of type <void>")) (* Assignement de variable à définir*)
-
-  (* | _ -> raise (Error "à faire") *)
+    else raise (Error_no_pos (x^" canno't be of type <void>")) (* Assignement de variable à définir*)
+  ) with 
+    | Error_no_pos s -> Error (s,pos)
+  (* | _ -> raise (Error_no_pos "à faire") *)
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
