@@ -183,12 +183,16 @@ in List.rev l
 
 
 
-let compile_main name nb_vars body =
+let compile_main name nb_vars = function
+| No_op -> []
+| body ->
   let l = (Label name :: allocate_mem (nb_vars + 1))
   @ save_fp nb_vars @ compile_i_ast true nb_vars body in
   compile_i_no_return true nb_vars l
 
-let compile_fun name nb_vars nb_args body =
+let compile_fun name nb_vars nb_args = function
+| No_op -> []
+| body ->
   let l = start_of_fun name nb_vars @ allocate_args nb_args @compile_i_ast false nb_vars body in
   compile_i_no_return false nb_vars l
 

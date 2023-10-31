@@ -173,12 +173,11 @@ let rec compile_stmt name hashtable_loc (stmt,pos) = try (
 *)
 let verif_declar_function x = match x.body with
   | Sno_op,_ -> (match Hashtbl.find_opt functions_corps_existe x.name with
-    | None -> Hashtbl.add functions_corps_existe x.name false
-    | Some true -> Hashtbl.add functions_corps_existe x.name true
-    | Some false -> raise (Error_no_pos("error: redefinition of " ^ x.name)))
+    | None -> Hashtbl.add functions_corps_existe x.name false; print_string (x.name^"\tno_op\n")
+    | _ -> raise (Error_no_pos("error: redefinition of " ^ x.name)))
   | x_body -> match Hashtbl.find_opt functions_corps_existe x.name with
-    | None -> Hashtbl.add functions_corps_existe x.name true
-    | Some false -> Hashtbl.add functions_corps_existe x.name true
+    | None -> Hashtbl.add functions_corps_existe x.name true; print_string (x.name^"\tadd body\n")
+    | Some false -> Hashtbl.add functions_corps_existe x.name true; print_string (x.name^"\tadd body\n")
     | Some true -> raise (Error_no_pos("error: redefinition of " ^ x.name))
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
@@ -189,7 +188,8 @@ let compile_program p ofile =
   let aux x = (* match Hashtbl.find_opt functions_corps_existe x.name with
     | Some false -> Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
     | Some true -> raise (Error_no_pos ("error: redefinition of " ^ x.name)) (* C ne permet pas de déclarer deux fonctions avec le même nom*)
-    else  Hashtbl.add functions x.name (x.ret_type, List.map fst x.args); *) (* ajoute la nouvelle variable gloable/fonction à la table*)
+    else  *) (* ajoute la nouvelle variable gloable/fonction à la table*)
+    Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
     match x.body with
     | Sno_op ,pos -> (x.name, 0, 0, No_op) (* c'est une variables globale *)
     | x_body -> let hashtable_loc = Hashtbl.create 5 in (* créé la table des variables locales à la fonction x.name *)
