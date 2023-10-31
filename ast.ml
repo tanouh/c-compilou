@@ -9,6 +9,7 @@ and stmt_node =
   | Sval of expr
   | Sdeclarevar of dtype * left_value
   | Sif of expr*stmt
+  | Sinitvar of dtype * left_value * expr
   | Sifelse of expr*stmt*stmt
   (* | Swhile of expr*stmt *)
 and const =

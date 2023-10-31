@@ -61,9 +61,9 @@ left_value:
 
 simple_stmt:
   | RETURN ; e = expr { Sreturn(e), $startpos }
-  | ret = dtype; l = left_value {Sdeclarevar(ret, l), $startpos}
+  | l_type = dtype; l = left_value {Sdeclarevar(l_type, l), $startpos}
   | l = left_value ; EQ ; e = expr { Sassign(l,e), $startpos }
-  // | ret = TYPE; l = left_value ; EQ ; e = expr ; { Sinitvar (ret, l ,e), $startpos}
+  | l_type = dtype; l = left_value ; EQ ; e = expr ; { Sinitvar (l_type, l ,e), $startpos}
   | e = expr { Sval(e), $startpos }
 ;
 
