@@ -167,7 +167,7 @@ let allocate_args nb_args =
     else [Sw (A i, get_var_addr 4 i )] @ loop_ai (i+1) stop
   and loop_spi res i =
     if i >= nb_args then res
-    else loop_spi (res@[Lw (T 0,  Areg (4 * (nb_args + 2 - i), FP)); Sw (T 0, get_var_addr 4 i )]) (i+1)
+    else loop_spi (res@[Lw (T 0,  Areg (4 * (nb_args + 1 - i), FP)); Sw (T 0, get_var_addr 4 i )]) (i+1)
   in
   if nb_args <= 3 then
     loop_ai 0 nb_args
@@ -175,15 +175,24 @@ let allocate_args nb_args =
     loop_ai 0 4@loop_spi [] 4
 
 
+let compile_i_no_return is_main nb_vars ins =
+  let l = match List.rev ins with
+| x::l' as ins -> (match x with J ra -> ins | _ -> List.rev_append (end_of_fun is_main nb_vars) ins)
+| _ as ins -> ins
+in List.rev l
 
 
 
 let compile_main name nb_vars body =
-  (Label name :: allocate_mem (nb_vars + 1))
-  @ save_fp nb_vars @ compile_i_ast true nb_vars body
+  let l = (Label name :: allocate_mem (nb_vars + 1))
+  @ save_fp nb_vars @ compile_i_ast true nb_vars body in
+  compile_i_no_return true nb_vars l
 
 let compile_fun name nb_vars nb_args body =
-  start_of_fun name nb_vars @ allocate_args nb_args @compile_i_ast false nb_vars body
+  let l = start_of_fun name nb_vars @ allocate_args nb_args @compile_i_ast false nb_vars body in
+  compile_i_no_return false nb_vars l
+
+
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let to_mips (p, data) ofile =
