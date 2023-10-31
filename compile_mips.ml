@@ -7,15 +7,15 @@ open Errors
 let label_cnt =  ref 1
 
 (* Les fonctions de manipulation de la pile pour rendre les instructions plus modulaires *)
-let push_var reg x nb = [ Arithi (Add, SP, SP, -4); Sw (reg, Areg (4, SP)) ]
+let push_var reg x nb = [ Arithi (Add, SP, SP, -4); Sw (reg, Areg (0, SP)) ]
 
 (* Empiler une variable temporaire *)
-let push_tmp = [ Arithi (Add, SP, SP, -4); Sw (V 0, Areg (4, SP)) ]
+let push_tmp = [ Arithi (Add, SP, SP, -4); Sw (V 0, Areg (0, SP)) ]
 
 (* Dépiler *)
 let pop_tmp =
   (* sp_aux := !sp_aux - 1; *)
-  [ Lw(V 0, Areg(4,SP)); Arithi (Add, SP, SP, 4) ]
+  [ Lw(V 0, Areg(0,SP)); Arithi (Add, SP, SP, 4) ]
 
 (*allocate local vars*)
 let allocate_mem nb_vars = [ Arithi (Add, SP, SP, -4 * nb_vars) ]
@@ -32,7 +32,7 @@ let save_ra offset = [ Sw (RA, Areg (4 * offset, SP)) ]
 
 (* restore ra, restore fp, free local vars, jmp ra*)
 let end_of_fun is_main nb_var =
-  if is_main then Lw (FP, Areg (0, FP)) :: free_mem (nb_var + 2)@ [End_of_program]
+  if is_main then Lw (FP, Areg (0, FP)) :: free_mem (nb_var + 1)@ [End_of_program]
   else  (Lw (RA, Areg (4, FP)) :: Lw (FP, Areg (0, FP)) :: free_mem (nb_var + 2))
   @ [ Jr RA ]
 
@@ -87,7 +87,7 @@ and compile_i_binop op a = function
   | Iconst k -> compile_i_expr a @ [ Li (V 1, k) ] @ compile_i_op op
   | _ as b ->
       compile_i_expr a @ push_tmp @ compile_i_expr b
-      @ [ Move (V 1, V 0); Lw (V 0, Areg (4, SP)) ]
+      @ [ Move (V 1, V 0); Lw (V 0, Areg (0, SP)) ]
       @ compile_i_op op @ [Arithi (Add, SP, SP, 4)]
 
 and compile_i_assign (l, e) =
@@ -161,6 +161,7 @@ and compile_i_if_else is_main nb_var cond b_if b_else =
   @[Label(jlabel(!label_cnt - 1))]@compile_i_ast is_main nb_var b_else@[Label (jlabel !label_cnt)]
 
 let allocate_args nb_args =
+  print_int nb_args; print_newline ();
   let rec loop_ai i stop=
     if i >= stop then []
     else [Sw (A i, get_var_addr 4 i )] @ loop_ai (i+1) stop

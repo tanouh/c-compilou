@@ -1,9 +1,7 @@
 int fib(int n) {
-  if (n <= 1) {
+  if (n <= 1)
        return n;
-  }
-  print_int(n);
-  return fib(n - 1) + fib(n - 2);
+  return  fib(n - 1) + fib(n - 2);
 }
 
 int syr(int n) {
@@ -18,6 +16,5 @@ int syr(int n) {
 int main() {
   int v;
   v = fib(10);
-  print_int(v);
-  return 0;
+  return syr(v);
 }
