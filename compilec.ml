@@ -264,10 +264,6 @@ let compile_program p ofile =
   (* assure la bonne définition de chaque fonction *)
   List.iter verif_declar_function p;
   let aux x =
-    (* match Hashtbl.find_opt functions_corps_existe x.name with
-       | Some false -> Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
-       | Some true -> raise (Error_no_pos ("error: redefinition of " ^ x.name)) (* C ne permet pas de déclarer deux fonctions avec le même nom*)
-       else *)
     (* ajoute la nouvelle variable gloable/fonction à la table*)
     Hashtbl.replace functions x.name (x.ret_type, List.map fst x.args);
     match x.body with
