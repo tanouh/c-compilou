@@ -17,12 +17,7 @@ int f() {
 }
 
 int main() {
-	int x;
-	x = f();
-	if (x == 5)
-		print_int(10);
-	else
-		print_int(-10);
-
+	int x = f();
+	print_int(x);
 	return 0;
 }

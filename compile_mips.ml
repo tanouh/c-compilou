@@ -69,13 +69,13 @@ and compile_i_left_value (ipos, size) =
 and compile_i_const_value k = [ Li (V 0, k) ]
 and compile_i_unop v = compile_i_expr v @ [ Arithi (Mul, V 0, V 0, -1) ]
 
-and compile_i_op (op : Ast.binop) = 
+and compile_i_op (op : Ast.binop) =
   match op with
   | Add | Sub | Mul | Div -> [ Arith (arith_of_binop op, V 0, V 1, V 0) ]
-  | Mod -> [ Arith_div (V 0, V 1); Mfhi (V 0) ]
+  | Mod -> [ Arith_div (V 1, V 0); Mfhi (V 0) ]
   | Leq -> [ Slt (V 0, V 0, V 1); Xori (V 0, V 0, 1) ] (* a <= b = ! b < a*)
   | Le -> [ Slt (V 0, V 1, V 0) ]
-  | Geq -> [ Slt (V 0, V 0, V 1); Xori (V 0, V 0, 1) ]
+  | Geq -> [ Slt (V 0, V 1, V 0); Xori (V 0, V 0, 1) ]
   | Ge -> [ Slt (V 0, V 0, V 1) ]
   | Neq -> [ Sltu (V 0, V 0, 1) ]
   | Eq -> [ Xor (V 0, V 1, V 0); Sltu (V 0, V 0, 1) ]
