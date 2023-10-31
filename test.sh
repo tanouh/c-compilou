@@ -40,6 +40,8 @@ for file in tests/*.c; do
     /bin/cat "$TEST_FILE.tmp" > "$TEST_FILE"
     diff "$TEST_FILE" "${file%.c}.test"
     if [ $? -ne 0 ]; then
+        /bin/cat "$TEST_FILE" > "${file%.c}.log"
+        /bin/cat "${file%.c}.s" >> "${file%.c}.log"
         rm "$TEST_FILE" "$TEST_FILE.tmp" tests/*.s
         printf "$RED%s$CLEAR\n" "[FAILED]"
         FAILED_TEST=$file,$FAILED_TEST

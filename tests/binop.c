@@ -18,10 +18,12 @@ int main() {
 	print_int(true() || false());
 	print_int(_42() < _100());
 	print_int(_42() <= _100());
+	print_int(_100() <= 1);
 	print_int(_42() > _100());
 	print_int(_42() >= _100());
 	print_int(_42() != _100());
 	print_int(_100() == _100());
+	print_int(_42() == _100());
 	print_int(true() && false());
 	print_int(true() && true());
 	print_int(false() || false());

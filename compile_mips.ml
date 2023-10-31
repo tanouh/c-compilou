@@ -31,8 +31,9 @@ let restore_fp nb_vars = Lw (FP, Areg (0, FP)) :: free_mem (nb_vars + 1)
 let save_ra offset = [ Sw (RA, Areg (4 * offset, SP)) ]
 
 (* restore ra, restore fp, free local vars, jmp ra*)
-let end_of_fun nb_var =
-  (Lw (RA, Areg (4, FP)) :: Lw (FP, Areg (0, FP)) :: free_mem (nb_var + 2))
+let end_of_fun is_main nb_var =
+  if is_main then Lw (FP, Areg (0, FP)) :: free_mem (nb_var + 2)@ [End_of_program]
+  else  (Lw (RA, Areg (4, FP)) :: Lw (FP, Areg (0, FP)) :: free_mem (nb_var + 2))
   @ [ Jr RA ]
 
 (*puts label, save fp and ra, move sp position in fp, allocate memory for local vars *)
@@ -51,11 +52,11 @@ let arith_of_binop = function
   | Ast.Mul -> Mips.Mul
   | _ -> failwith "non equivalent"
 
-let rec compile_i_ast = function
-  | Iif (e, b_if) -> compile_i_if e b_if
-  | Iifelse (e, b_if, b_else) -> compile_i_if_else e b_if b_else
-  | Iblock a -> List.map compile_i_ast a |> List.concat
-  | Ireturn e -> compile_i_expr e
+let rec compile_i_ast is_main nb_var = function
+  | Iif (e, b_if) -> compile_i_if is_main nb_var e b_if
+  | Iifelse (e, b_if, b_else) -> compile_i_if_else is_main nb_var e b_if b_else
+  | Iblock a -> List.map (compile_i_ast is_main nb_var) a |> List.concat
+  | Ireturn e -> compile_i_expr e @ end_of_fun is_main nb_var
   | Iassign (l, e) -> compile_i_assign (l, e)
   | Ival e -> compile_i_expr e
   | No_op -> []
@@ -71,22 +72,22 @@ and compile_i_unop v = compile_i_expr v @ [ Arithi (Mul, V 0, V 0, -1) ]
 
 and compile_i_op (op : Ast.binop) =
   match op with
-  | Add | Sub | Mul | Div -> [ Arith (arith_of_binop op, V 0, V 1, V 0) ]
-  | Mod -> [ Arith_div (V 1, V 0); Mfhi (V 0) ]
-  | Leq -> [ Slt (V 0, V 0, V 1); Xori (V 0, V 0, 1) ] (* a <= b = ! b < a*)
-  | Le -> [ Slt (V 0, V 1, V 0) ]
-  | Geq -> [ Slt (V 0, V 1, V 0); Xori (V 0, V 0, 1) ]
-  | Ge -> [ Slt (V 0, V 0, V 1) ]
-  | Neq -> [ Sltu (V 0, V 0, 1) ]
-  | Eq -> [ Xor (V 0, V 1, V 0); Sltu (V 0, V 0, 1) ]
-  | And -> [ And (V 0, V 1, V 0) ]
-  | Or -> [ Or (V 0, V 1, V 0) ]
+  | Add | Sub | Mul | Div -> [ Arith (arith_of_binop op, V 0, V 0, V 1) ]
+  | Mod -> [ Arith_div (V 0, V 1); Mfhi (V 0) ]
+  | Leq -> [ Slt (V 0, V 1, V 0); Xori (V 0, V 0, 1) ] (* a <= b = ! b < a*)
+  | Le -> [ Slt (V 0, V 0, V 1) ]
+  | Geq -> [ Slt (V 0, V 0, V 1); Xori (V 0, V 0, 1) ]
+  | Ge -> [ Slt (V 0, V 1, V 0) ]
+  | Neq -> [  Xor (V 0, V 0, V 1); Slt (V 0, ZERO, V 0) ]
+  | Eq -> [ Xor (V 0, V 0, V 1); Sltu (V 0, V 0, 1) ]
+  | And -> [ And (V 0, V 0, V 1) ]
+  | Or -> [ Or (V 0, V 0, V 1) ]
 
 and compile_i_binop op a = function
   | Iconst k -> compile_i_expr a @ [ Li (V 1, k) ] @ compile_i_op op
   | _ as b ->
       compile_i_expr a @ push_tmp @ compile_i_expr b
-      @ [ Lw (V 1, Areg (4, SP)) ]
+      @ [ Move (V 1, V 0); Lw (V 0, Areg (4, SP)) ]
       @ compile_i_op op @ [Arithi (Add, SP, SP, 4)]
 
 and compile_i_assign (l, e) =
@@ -150,14 +151,14 @@ and i_print_int res = function
             Syscall;
           ])
         l'
-and compile_i_if cond b_if =
+and compile_i_if is_main nb_var cond b_if =
   label_cnt := !label_cnt + 1;
-  compile_i_expr cond @ [Beq (V 0, ZERO, jlabel !label_cnt)]@compile_i_ast b_if@[Label(jlabel !label_cnt)]
+  compile_i_expr cond @ [Beq (V 0, ZERO, jlabel !label_cnt)]@compile_i_ast is_main nb_var b_if@[Label(jlabel !label_cnt)]
 
-and compile_i_if_else cond b_if b_else =
+and compile_i_if_else is_main nb_var cond b_if b_else =
   label_cnt := !label_cnt + 2;
-  compile_i_expr cond @ [Beq (V 0, ZERO, jlabel (!label_cnt - 1))]@compile_i_ast b_if@[J (jlabel (!label_cnt))]
-  @[Label(jlabel(!label_cnt - 1))]@compile_i_ast b_else@[Label (jlabel !label_cnt)]
+  compile_i_expr cond @ [Beq (V 0, ZERO, jlabel (!label_cnt - 1))]@compile_i_ast is_main nb_var b_if@[J (jlabel (!label_cnt))]
+  @[Label(jlabel(!label_cnt - 1))]@compile_i_ast is_main nb_var b_else@[Label (jlabel !label_cnt)]
 
 let allocate_args nb_args =
   let rec loop_ai i stop=
@@ -178,11 +179,10 @@ let allocate_args nb_args =
 
 let compile_main name nb_vars body =
   (Label name :: allocate_mem (nb_vars + 1))
-  @ save_fp nb_vars @ compile_i_ast body @ restore_fp nb_vars
-  @ [ End_of_program ]
+  @ save_fp nb_vars @ compile_i_ast true nb_vars body
 
-let compile_fun name nb_var nb_args body =
-  start_of_fun name nb_var @ allocate_args nb_args @compile_i_ast body @ end_of_fun nb_var
+let compile_fun name nb_vars nb_args body =
+  start_of_fun name nb_vars @ allocate_args nb_args @compile_i_ast false nb_vars body
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let to_mips (p, data) ofile =
