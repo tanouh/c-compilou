@@ -111,30 +111,30 @@ let compile_if_else hashtable_loc cond body_if body_else =
     | Icall(name,_) as e-> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iifelse(e, body_if, body_else)
     | _ as e -> Iifelse(e, body_if, body_else)
 
-    let compile_assign hashtable_loc exp =
-      let aux x x_num = function
-        | Iconst k as exp_eval ->
-            Hashtbl.replace hashtable_loc x (x_num, exp_eval);
-            Iassign ((Ilocal x_num, 4), exp_eval)
-        | _ as exp_eval ->
-            Hashtbl.replace hashtable_loc x (x_num, Ileft (Ilocal x_num, 4));
-            Iassign ((Ilocal x_num, 4), exp_eval)
-      in
-      function
-      | Var x ->
-          if Hashtbl.mem hashtable_loc x then
-            let exp_eval = eval_expr hashtable_loc exp in
-            let x_num = fst (Hashtbl.find hashtable_loc x) in
-            aux x x_num exp_eval
-          else raise (Error_no_pos ("Undefined variable " ^ x))
+let compile_assign hashtable_loc exp =
+  let aux x x_num = function
+      | Iconst k as exp_eval ->
+           Hashtbl.replace hashtable_loc x (x_num, exp_eval);
+          Iassign ((Ilocal x_num, 4), exp_eval)
+      | _ as exp_eval ->
+          Hashtbl.replace hashtable_loc x (x_num, Ileft (Ilocal x_num, 4));
+          Iassign ((Ilocal x_num, 4), exp_eval)
+    in
+    function
+    | Var x ->
+        if Hashtbl.mem hashtable_loc x then
+          let exp_eval = eval_expr hashtable_loc exp in
+          let x_num = fst (Hashtbl.find hashtable_loc x) in
+          aux x x_num exp_eval
+        else raise (Error_no_pos ("Undefined variable " ^ x))
 
-    let compile_declare hashtable_loc typ x =
-      if Hashtbl.mem hashtable_loc x then
-        raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
-      else if typ = Dint then (
-        Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef);
-        No_op)
-      else raise (Error_no_pos (x ^ " cannot be of type <void>"))
+let compile_declare hashtable_loc typ x_name =
+    if Hashtbl.mem hashtable_loc x_name then
+      raise (Error_no_pos ("error: redeclaration of " ^ x_name ^ " with no linkage"))
+    else if typ = Dint then (
+      Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef);
+      No_op)
+    else raise (Error_no_pos ("error: variable or field '" ^ x_name ^ "'declared void"))
 
 (* compile les statements grâce à eval_expr et renvoie des istatements *)
 let rec compile_stmt name hashtable_loc (stmt,pos) = try (
@@ -147,16 +147,18 @@ let rec compile_stmt name hashtable_loc (stmt,pos) = try (
   | Sblock b -> Iblock (List.map (compile_stmt name hashtable_loc) b)
   | Sif (cond, stmt) -> compile_if hashtable_loc cond (compile_stmt name hashtable_loc stmt)
   | Sifelse (cond, e_if, e_else) -> compile_if_else hashtable_loc cond (compile_stmt name hashtable_loc e_if) (compile_stmt name hashtable_loc e_else)
-  | Sinitvar (var_type, Var var_name, value) ->
+  | Sinitvar (var_type, Var var_name, value) -> 
     let _ = compile_declare hashtable_loc var_type var_name in
-    compile_assign hashtable_loc value (Var var_name)
+    (try compile_assign hashtable_loc value (Var var_name) with 
+      |Warning_ret_void i_e -> raise(Error_no_pos("error: void value not ignored as it ought to be")))
   | Sdeclarevar (typ,Var x) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
     else (
       if typ = Dint then (Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef) ; No_op )
-      else raise (Error_no_pos (x ^ " cannot be of type <void>"))
+      else raise (Error_no_pos ("error: " ^ x ^ " cannot be of type <void>"))
       )(* Assignement de variable à définir*)
   ) with
     | Error_no_pos s -> raise (Error (s,pos))
+
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
