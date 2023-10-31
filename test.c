@@ -17,11 +17,8 @@ int f() {
 int main() {
 	int x;
 	x = f();
-	int y;
-	y = 2 * 10 + x;
-	int z;
-	z = f() + f();
-	print(x,y,z);
-	
+	if (x == 5) {
+		print_int(10);
+	} 
 	return 0;
 }

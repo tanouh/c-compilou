@@ -4,6 +4,8 @@ open Mips
 open Ast_mips
 open Errors
 
+let label_cnt =  ref 1
+
 (* Les fonctions de manipulation de la pile pour rendre les instructions plus modulaires *)
 let push_var reg x nb = [ Arithi (Add, SP, SP, -4); Sw (reg, Areg (4, SP)) ]
 
@@ -51,7 +53,7 @@ let arith_of_binop = function
 
 let rec compile_i_ast = function
   | Iif (e, b_if) -> compile_i_if e b_if
-  | Iifelse (e, b_if, b_else) -> []
+  | Iifelse (e, b_if, b_else) -> compile_i_if_else e b_if b_else
   | Iblock a -> List.map compile_i_ast a |> List.concat
   | Ireturn e -> compile_i_expr e
   | Iassign (l, e) -> compile_i_assign (l, e)
@@ -149,10 +151,14 @@ and i_print_int res = function
             Syscall;
           ])
         l'
-and compile_i_if e b_if =
-  let cond = compile_i_expr e
-  and compile_i_ast b_if in
-  [Bgez]
+and compile_i_if cond b_if =
+  label_cnt := !label_cnt + 1;
+  compile_i_expr cond @ [Beq (V 0, ZERO, jlabel !label_cnt)]@compile_i_ast b_if@[Label(jlabel !label_cnt)]
+
+and compile_i_if_else cond b_if b_else =
+  label_cnt := !label_cnt + 2;
+  compile_i_expr cond @ [Beq (V 0, ZERO, jlabel (!label_cnt - 1))]@compile_i_ast b_if@[J (jlabel (!label_cnt))]
+  @[Label(jlabel(!label_cnt - 1))]@compile_i_ast b_else@[Label (jlabel !label_cnt)]
 
 let allocate_args nb_args =
   let rec loop_ai i stop=

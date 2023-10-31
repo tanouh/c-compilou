@@ -32,6 +32,8 @@ type instruction =
   | Endfun of string
   | JEnd of string
   | End_of_program
+  | Bgtz of register * string
+  | Beq of register * register * string
 
 type data =
   | Asciiz of string * string
@@ -67,7 +69,7 @@ let string_address = function
   | Alab s ->  s (* Adress label *)
   | Areg (ofs, r) -> (string_of_int ofs)^"("^(string_register r)^")"
 
-
+let jlabel k = "$Compilou"^(string_of_int k)
 
 
 let string_instruction = function
@@ -103,13 +105,14 @@ let string_instruction = function
   | Jal s -> "\tjal\t"^s
   | J s -> "\tj\t"^s
   | Jr r -> "\tjr\t"^(string_register r)
-  | Bgtz (r, pc) -> "\tbgtz\t"^(string_register r)^","^(string_of_int pc)
   | Syscall -> "\tsyscall"
   | Comment s ->  "\t "^s
   | Label s ->  s^":"
   | Endfun s -> "end_"^s^":"
   | JEnd s -> "\tj\tend_"^s
   | End_of_program -> "\tli $v0, 10\n\tsyscall"
+  | Bgtz (r, label) -> "\tbgtz\t"^(string_register r)^","^label
+  | Beq (r1, r2, label) -> "\tbeq\t"^(string_register r1)^","^(string_register r2)^","^label
 
 let string_data = function
   | Asciiz (l, s) ->

@@ -72,10 +72,10 @@ stmt:
 // | FOR ; s = IDENT ; IN ; e = expr ; COLON ; b = suite  {Sfor(s,e,b), $startpos}
 | IF ; LP ; cond = expr ; RP ; b = simple_stmt; SEMICOLON  {Sif(cond, b), $startpos}
 | IF ; LP; cond = expr ; RP ; b = simple_stmt; SEMICOLON ; ELSE ;  e = simple_stmt; SEMICOLON;  {Sifelse(cond,b,e), $startpos}
-| IF ; LP ; cond = expr ; RP ; LB ; b = suite; RB {Sif(cond, b), $startpos}
-| IF ; LP; cond = expr ; RP ; LB; b = suite; RB ; ELSE ; LB  e = suite; RB;  {Sifelse(cond,b,e), $startpos}
-| IF ; LP; cond = expr ; RP ; LB; b = suite; RB ; ELSE ;  e = simple_stmt; SEMICOLON;  {Sifelse(cond,b,e), $startpos}
-| IF ; LP; cond = expr ; RP ; b = simple_stmt; SEMICOLON ; RB ; ELSE ; LB  e = suite; RB;  {Sifelse(cond,b,e), $startpos}
+| IF ; LP ; cond = expr ; RP ; LBRACE ; b = suite; RBRACE {Sif(cond, b), $startpos}
+| IF ; LP; cond = expr ; RP ; LBRACE; b = suite; RBRACE ; ELSE ; LBRACE  e = suite; RBRACE;  {Sifelse(cond,b,e), $startpos}
+| IF ; LP; cond = expr ; RP ; LBRACE; b = suite; RBRACE ; ELSE ;  e = simple_stmt; SEMICOLON;  {Sifelse(cond,b,e), $startpos}
+| IF ; LP; cond = expr ; RP ; b = simple_stmt; SEMICOLON ; RBRACE ; ELSE ; LBRACE  e = suite; RBRACE;  {Sifelse(cond,b,e), $startpos}
 // | WHILE ; cond = expr ; COLON; b = suite {Swhile(cond,b), $startpos}
 ;
 

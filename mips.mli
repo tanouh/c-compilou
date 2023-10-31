@@ -23,7 +23,6 @@ type instruction =
   | Xor of register * register * register
   | And of register * register * register
   | Or of register * register * register
-  | Bgtz of register * int
   | Jal of string
   | J of string
   | Jr of register
@@ -35,6 +34,9 @@ type instruction =
   | Endfun of string
   | JEnd of string
   | End_of_program
+  | Bgtz of register * string
+  | Beq of register * register * string
+
 type data =
   | Asciiz of string * string
   | Word of string * int
@@ -43,5 +45,5 @@ type program = {
   text : instruction list;
   data : data list;
 }
-
+val jlabel : int -> string
 val print_program : program -> string -> unit
