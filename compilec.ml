@@ -35,7 +35,7 @@ let convert_cond (o:binop) = match o with
 let int_of_bool b = if b then 1 else 0
 let bool_of_int i = if i=0 then false else true
 
-(* simplifie les expressions, en remplçant 4+3 par 7 mais en laissant 4 + f(3), sans calculer f(3) 
+(* simplifie les expressions, en remplçant 4+3 par 7 mais en laissant 4 + f(3), sans calculer f(3)
    renvoie des iexprs *)
 let rec eval_expr hashtable_loc e =
   match e with
@@ -66,7 +66,7 @@ let rec eval_expr hashtable_loc e =
       |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond op (bool_of_int i1) (bool_of_int i2)))
       |(ie1,ie2) -> Ibinop (op,ie1,ie2)) (* idem *)
   )
-  | Ecall (name,expl) -> check_call hashtable_loc name expl 
+  | Ecall (name,expl) -> check_call hashtable_loc name expl
   | _ -> raise (Error_no_pos " Array à faire plus tard")
 
   (* vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction*)
@@ -77,8 +77,8 @@ let rec eval_expr hashtable_loc e =
         | Icall( s , expr_l) -> fst (Hashtbl.find functions s )
         | _ -> Dint (* une expression est forcément un int si ce n'est pas un ecall *)
        in
-      match name with 
-        | "print_int" -> if List.mem Dvoid (List.map expr_to_type args_compile) then raise (Error_no_pos ("wrong arguments for print_int")) 
+      match name with
+        | "print_int" -> if List.mem Dvoid (List.map expr_to_type args_compile) then raise (Error_no_pos ("wrong arguments for print_int"))
         else Icall(name,args_compile) (* la fonction print_int prend un nombre infini d'argument, il suffit donc de regarder si un argument n'est pas un int*)
         | _ -> (* sinon il faut aussi que le nombre d'argument expl soit égale au nombre d'argument attendu par name *)
           if (List.map expr_to_type args_compile = snd (Hashtbl.find functions name) ) (* compare taille et type *)
@@ -116,7 +116,7 @@ let rec compile_stmt hashtable_loc (stmt,pos) = try (
   | (Sreturn e) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b) -> Iblock (List.map (compile_stmt hashtable_loc) b)
   | Sif (cond, stmt) -> compile_if hashtable_loc cond (compile_stmt hashtable_loc stmt)
-  | Sifelse (cond, e_if, e_else) -> No_op
+  | Sifelse (cond, e_if, e_else) -> compile_if_else hashtable_loc cond (compile_stmt hashtable_loc e_if) (compile_stmt hashtable_loc e_else)
   | (Sdeclarevar (typ,Var x)) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
     else (
       if typ = Dint then (Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef) ; No_op )

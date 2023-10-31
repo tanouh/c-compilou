@@ -27,7 +27,7 @@ let free_mem nb_vars = [ Arithi (Add, SP, SP, 4 * nb_vars) ]
 let save_fp offset =
   [ Sw (FP, Areg (4 * offset, SP)); Arithi (Add, FP, SP, 4 * offset) ]
 
-let restore_fp nb_vars = Lw (FP, Areg (4, FP)) :: free_mem (nb_vars + 1)
+let restore_fp nb_vars = Lw (FP, Areg (0, FP)) :: free_mem (nb_vars + 1)
 let save_ra offset = [ Sw (RA, Areg (4 * offset, SP)) ]
 
 (* restore ra, restore fp, free local vars, jmp ra*)
@@ -182,7 +182,7 @@ let compile_main name nb_vars body =
   @ save_fp nb_vars @ compile_i_ast body @ restore_fp nb_vars
   @ [ End_of_program ]
 
-let compile_fun name nb_args nb_var body =
+let compile_fun name nb_var nb_args body =
   start_of_fun name nb_var @ allocate_args nb_args @compile_i_ast body @ end_of_fun nb_var
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)

@@ -1,7 +1,5 @@
 int g(int x) {
-	int y;
-	y = 10;
-	return y * x;
+	return 10 * x;
 }
 
 void print(int a, int b, int c) {
@@ -9,16 +7,19 @@ void print(int a, int b, int c) {
 }
 
 int f() {
-	int x;
-	x = 10;
-	return 2*x + g(x);
+	int y;
+	y = 0;
+	y = g(10);
+	return y;
 }
 
 int main() {
 	int x;
 	x = f();
-	if (x == 5) {
+	if (x == 5)
 		print_int(10);
-	} 
+	else
+		print_int(-10);
+	
 	return 0;
 }
