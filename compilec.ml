@@ -45,7 +45,7 @@ let rec eval_expr hashtable_loc e =
       | None -> raise (Error_no_pos "Undefined value")
       | Some (_k,i) -> i
       )
-    | Ecall (name,expl) -> ( match Hashtbl.find_opt functions name with 
+    | Ecall (name,expl) -> ( match Hashtbl.find_opt functions name with
       | None -> raise (Error_no_pos (" wrong arguments for " ^ name))
       | Some (Dvoid, args_l) -> raise (Warning_ret_void (check_call hashtable_loc name (Dvoid, args_l) expl))
       | Some (Dint, args_l) -> check_call hashtable_loc name (Dint, args_l) expl )
@@ -72,21 +72,21 @@ let rec eval_expr hashtable_loc e =
           |(ie1,ie2) -> Ibinop (op,ie1,ie2)) (* idem *)
       )
       | _ -> raise (Error_no_pos "pour enlever le warning du pattern martching")
-      ) with 
+      ) with
       | Warning_ret_void i_e-> raise (Error_no_pos ("error: void value not ignored as it ought to be"))
-    
-  
+
+
     (* vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction*)
-  and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl = 
-      let args_compile = (try List.map (eval_expr hashtable_loc) expl with 
+  and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
+      let args_compile = (try List.map (eval_expr hashtable_loc) expl with
         | Warning_ret_void i_e -> match name_dtype_args with
           | [] | [Dvoid] -> if List.length expl > 1 then raise (Error_no_pos("error: they are too many arguments to function '"^name^"'"))
           else [i_e]
-          | _ -> raise (Error_no_pos ("wrong arguments for '" ^ name ^"'")) 
+          | _ -> raise (Error_no_pos ("wrong arguments for '" ^ name ^"'"))
       ) in
-      match name with 
+      match name with
         | "print_int" -> Icall("print_int", args_compile)
-        | _ -> match args_compile with 
+        | _ -> match args_compile with
           | [] -> ( match name_dtype_args with
               |[] | [Dvoid] -> Icall(name, args_compile)
               | _ -> raise (Error_no_pos("error: wrong arguments to function '"^name^"'" ))
@@ -98,7 +98,7 @@ let rec eval_expr hashtable_loc e =
           | _ -> if List.length expl = List.length (snd (Hashtbl.find functions name)) then Icall(name,args_compile)
             else if List.length expl < List.length (snd (Hashtbl.find functions name)) then raise (Error_no_pos ( "error: they are too few arguments to function '"^name^"'" ))
             else raise (Error_no_pos ( "error: they are too many arguments to function '"^name^"'" ))
-  
+
 let compile_if hashtable_loc cond body =
   match eval_expr hashtable_loc cond with
     | Iconst k -> if k <> 0 then body else No_op
@@ -132,7 +132,7 @@ let compile_declare hashtable_loc typ x_name =
     if Hashtbl.mem hashtable_loc x_name then
       raise (Error_no_pos ("error: redeclaration of " ^ x_name ^ " with no linkage"))
     else if typ = Dint then (
-      Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef);
+      Hashtbl.add hashtable_loc x_name (Hashtbl.length hashtable_loc, IUndef);
       No_op)
     else raise (Error_no_pos ("error: variable or field '" ^ x_name ^ "'declared void"))
 
@@ -147,9 +147,9 @@ let rec compile_stmt name hashtable_loc (stmt,pos) = try (
   | Sblock b -> Iblock (List.map (compile_stmt name hashtable_loc) b)
   | Sif (cond, stmt) -> compile_if hashtable_loc cond (compile_stmt name hashtable_loc stmt)
   | Sifelse (cond, e_if, e_else) -> compile_if_else hashtable_loc cond (compile_stmt name hashtable_loc e_if) (compile_stmt name hashtable_loc e_else)
-  | Sinitvar (var_type, Var var_name, value) -> 
+  | Sinitvar (var_type, Var var_name, value) ->
     let _ = compile_declare hashtable_loc var_type var_name in
-    (try compile_assign hashtable_loc value (Var var_name) with 
+    (try compile_assign hashtable_loc value (Var var_name) with
       |Warning_ret_void i_e -> raise(Error_no_pos("error: void value not ignored as it ought to be")))
   | Sdeclarevar (typ,Var x) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
     else (
