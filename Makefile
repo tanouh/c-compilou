@@ -1,4 +1,4 @@
-.phony : build run test
+.phony : binary test
 
 binary:
 	@dune build compilou.exe
@@ -8,20 +8,10 @@ byte:
 
 clean:
 	@dune clean
-	@rm -f ./main.bc
-	@rm tests/*.s
+	@rm -f *.exe
 
 test:
 	./test.sh
 
 test_macos:
 	./test_macos.sh
-
-debug: byte
-	@rm -f bin/main.bc
-	@cp _build/default/bin/main.bc .
-	@ocamldebug main.bc
-
-run: binary
-	@dune exec bin/main.exe -- $(ARGS)
-

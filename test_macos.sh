@@ -36,7 +36,7 @@ for file in tests/*.c; do
         continue
     fi
     spim -f "${file%.c}.s" > "$TEST_FILE"
-    tail -n +6 "$TEST_FILE" > "$TEST_FILE.tmp"
+    tail -n +2 "$TEST_FILE" > "$TEST_FILE.tmp"
     cat "$TEST_FILE.tmp" > "$TEST_FILE"
     diff "$TEST_FILE" "${file%.c}.test"
     if [ $? -ne 0 ]; then
