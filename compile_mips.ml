@@ -121,7 +121,7 @@ and compile_i_expr = function
   | Ileft lv -> compile_i_left_value lv
   | Iunop v -> compile_i_unop v
   | Ibinop (op, a, b) -> compile_i_binop op a b
-  | IUndef -> raise (Error "Declared variable but not initialized")
+  | IUndef -> failwith "Not done"
   | Icall (label, args) -> (
       match label with
       | "print_int" -> i_print_int [] args

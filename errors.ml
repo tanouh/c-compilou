@@ -1,1 +1,1 @@
-exception Error of string * int (* nom erreur * ligne de l'erreur*) 
+exception Error of string * Ast.pos (* nom erreur * ligne de l'erreur*)

@@ -3,12 +3,12 @@ open Ast_mips
 open Compile_mips
 open Errors
 
-exception Error_no_pos of string 
+exception Error_no_pos of string
 
 let functions = Hashtbl.create 10
 
 let load_print_int =
-  Hashtbl.replace functions "print_int"  ( Dvoid , [] ) 
+  Hashtbl.replace functions "print_int"  ( Dvoid , [] )
 
 let convert_arith (o:binop) = match o with
 | Add -> (+)
@@ -41,7 +41,7 @@ let rec eval_expr hashtable_loc e =
   | Val v -> (match v with
     | Var x -> (match Hashtbl.find_opt hashtable_loc x with
       | None -> raise (Error_no_pos "Undefined value")
-      | Some i -> i)
+      | Some (_,i) -> i)
   )
   | Moins e ->
     (match eval_expr hashtable_loc e with
@@ -70,47 +70,48 @@ let rec eval_expr hashtable_loc e =
   and check_call hashtable_loc name expl =
     if Hashtbl.mem functions name then (
       let args_compile =  List.map (eval_expr hashtable_loc) expl in (* on compile d'abord les arguments que prends la fonction name*)
-      if (List.map (fun x -> match x with 
+      if (List.map (fun x -> match x with
         | Icall( s , expr_l) -> fst (Hashtbl.find functions s )
         | _ -> Dint ) args_compile = snd (Hashtbl.find functions name) ) then
         Icall(name, args_compile)
-      else 
+      else
         raise (Error_no_pos (" wrong arguments for " ^ name))
     )
     else raise (Error_no_pos ("Undefined function "^name)) (* TODO: check the type + check if funtion exist*)
 
-let rec compile_stmt hashtable_loc (stmt,_pos) = try (
+let rec compile_stmt hashtable_loc (stmt,pos) = try (
   match stmt with
-  | (Sassign (l,exp), pos) ->
+  | (Sassign (l,exp)) ->
     (match l with
     | Var x -> if Hashtbl.mem hashtable_loc x then (
-      let exp_eval = eval_expr hashtable_loc exp in 
-      let x_num = Hashtbl.find hashtable_loc x in 
+      let exp_eval = eval_expr hashtable_loc exp in
+      let x_num = fst(Hashtbl.find hashtable_loc x) in
       Hashtbl.replace hashtable_loc x (x_num, exp_eval) ;
       Iassign ((Ilocal x_num, 4) , exp_eval)) else raise (Error_no_pos ("Undefined variable "^x)) )
-  | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
-  | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
-  | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,pos)) b))
-  | (Sdeclarevar (typ,Var x) , pos) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos "error: redeclaration of " ^ x ^ " with no linkage")
+  | (Sval e) -> Ival (eval_expr hashtable_loc e)
+  | (Sreturn e) ->  Ireturn (eval_expr hashtable_loc e)
+  | (Sblock b) -> Iblock (List.map (compile_stmt hashtable_loc) b)
+  | (Sdeclarevar (typ,Var x)) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
     else (
       if typ = Dint then (Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef) ; No_op )
-      else raise (Error_no_pos (x ^ " canno't be of type <void>")) 
+      else raise (Error_no_pos (x ^ " canno't be of type <void>"))
       )(* Assignement de variable à définir*)
-  ) with 
-    | Error_no_pos s -> Error (s,pos)
+  ) with
+    | Error_no_pos s -> raise (Error (s,pos))
   (* | _ -> raise (Error_no_pos "à faire") *)
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
   load_print_int;
   let aux x =
-    Hashtbl.replace functions x.name x;
+    if Hashtbl.mem functions x.name then raise (Error_no_pos ("redeclaration of " ^ x.name ^ " with no linkage"))
+    else  Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
     match x.body with
     | None -> (x.name, 0 ,List.length x.args,Iassign((Iglobal x.name, 4), IUndef))(* à modifier car comment gérer la déclaration de variable, convention à définir *)
     | Some x_body -> let hashtable_loc = Hashtbl.create 5 in
-    List.iteri (fun i (t,name) -> Hashtbl.replace hashtable_loc name (Ileft (Ilocal i,4))) x.args; (*declare les arguments*)
-    let body = compile_stmt hashtable_loc (x_body,0) in
-      (x.name, Hashtbl.length hashtable_loc, List.length x.args,body) in
+    List.iteri (fun i (t,name) -> Hashtbl.replace hashtable_loc name (i, Ileft (Ilocal i,4))) x.args; (*declare les arguments*)
+    let body = compile_stmt hashtable_loc x_body in
+      (x.name, Hashtbl.length hashtable_loc, List.length x.args, body) in
   let code = List.map aux p in
   to_mips (code,[]) ofile
 
