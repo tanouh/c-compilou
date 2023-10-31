@@ -72,7 +72,7 @@ let rec eval_expr hashtable_loc e =
       let args_compile =  List.map (eval_expr hashtable_loc) expl in (* on compile d'abord les arguments que prends la fonction name*)
       if (List.map (fun x -> match x with 
           | Icall( s , expr_l) -> fst Hashtbl.find s functions 
-          | _ -> Dint ) args_compile = (fst (Hashtbl.find name functions) )) then 
+          | _ -> Dint ) args_compile = (snd (Hashtbl.find name functions) )) then 
         Icall(name, args_compile)
       else 
         raise (Error_no_pos (" wrong arguments for " ^ name))
@@ -83,13 +83,16 @@ let rec compile_stmt hashtable_loc (stmt,_pos) = try (
   match stmt with
   | (Sassign (l,exp), pos) ->
     (match l with
-    | Var x -> if Hashtbl.mem hashtable_loc x then (let exp_eval = eval_expr hashtable_loc exp in Hashtbl.replace hashtable_loc x exp_eval ;
-    Iassign ((Ilocal 0,4) ,exp_eval)) else raise (Error_no_pos ("Undefined variable "^x))  (* Assignement de variable à définir*))
+    | Var x -> if Hashtbl.mem hashtable_loc x then (
+      let exp_eval = eval_expr hashtable_loc exp in 
+      let x_num = Hashtbl.find x in 
+      Hashtbl.replace hashtable_loc x (x_num, exp_eval) ;
+      Iassign ((Ilocal x_num, 4) , exp_eval)) else raise (Error_no_pos ("Undefined variable "^x)) )
   | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
-  | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,0)) b))
-  | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.replace hashtable_loc x (IUndef) ; No_op )
-    else raise (Error_no_pos (x^" canno't be of type <void>")) (* Assignement de variable à définir*)
+  | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,pos)) b))
+  | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.replace hashtable_loc x (fst Hashtbl.find x, IUndef) ; No_op )
+    else raise (Error_no_pos (x ^ " canno't be of type <void>")) (* Assignement de variable à définir*)
   ) with 
     | Error_no_pos s -> Error (s,pos)
   (* | _ -> raise (Error_no_pos "à faire") *)
