@@ -1,4 +1,4 @@
-.phony : install build run test
+.phony : build run test
 
 binary:
 	@dune build compilou.exe
@@ -13,6 +13,9 @@ clean:
 
 test:
 	./test.sh
+
+test_macos:
+	./test_macos.sh
 
 debug: byte
 	@rm -f bin/main.bc
