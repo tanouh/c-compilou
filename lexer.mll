@@ -5,7 +5,7 @@
   open Lexing
   open Parser
 
-  exception Lexing_error of char
+  exception Lexing_error of string
 
   let kwd_tbl = ["int", INT; "void", VOID ; "if", IF; "else", ELSE ; "return",RETURN ]
   let id_or_kwd s = try List.assoc s kwd_tbl with _ -> IDENT s
@@ -27,6 +27,9 @@ rule token = parse
   | '\n'    { newline lexbuf; token lexbuf }
   | space+  { token lexbuf }
   | ident as id { id_or_kwd id }
+  | "//" [^'\n']* { newline lexbuf; token lexbuf}
+  | "//" [^'\n']*eof { EOF }
+  | "/*" { comment_block lexbuf}
   | ';'     { SEMICOLON }
   | '=''='  { EQQ }
   | '<''='  { LEQ }
@@ -47,12 +50,14 @@ rule token = parse
   | ')'     { RP }
   | '{'     { LBRACE}
   | '}'     { RBRACE }
-  | '['     { LB }
-  | ']'     { RB }
-  | '&'     { PTR }
   | ','     { COMMA }
   | integer as s { CST (s) }
   | eof     { EOF }
-  | _ as c  { raise (Lexing_error c) }
+  | _ as c  { raise (Lexing_error (String.make 1 c)) }
+
+and comment_block = parse
+ | "*/" {newline lexbuf; token lexbuf}
+ | eof {raise (Lexing_error "unclosed comment")}
+ | _ {comment_block lexbuf}
 
 

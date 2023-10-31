@@ -9,13 +9,13 @@
 %token <string> IDENT
 %token RETURN IF ELSE
 %token EOF
-%token LP RP LBRACE RBRACE LB RB
+%token LP RP LBRACE RBRACE
 %token PLUS MINUS TIMES DIV MOD
 %token COMMA SEMICOLON
 %token AND OR
 %token EQ EQQ
 %token LEQ GEQ LE GE NEQ
-%token NOT PTR
+%token NOT
 %token INT VOID
 
 /* Definitions des priorites et associativites des tokens */
@@ -26,7 +26,6 @@
 %left PLUS MINUS
 %left TIMES DIV MOD
 %nonassoc uminus
-%nonassoc utimes
 
 /* Poin
 t d'entree de la grammaire */
@@ -84,11 +83,8 @@ expr:
 | l = left_value                 { Val(l)}
 | e1 = expr o = op e2 = expr     { Op(o,e1,e2) }
 | MINUS e = expr %prec uminus    { Moins(e) }
-// | PTR e = INDENT                 { Ptr(e) }
-// | TIMES e = expr %prec uminus    {  Star(e) }
 | NOT e = expr                   { Not(e) }
 | s = IDENT ; LP ; args = separated_list(COMMA,expr) ; RP { Ecall(s,args) }
-// | LB ; args = separated_list(COMMA,expr) ; RB { List(args)} array plutot
 | LP ; e = expr ; RP { e }
 
 ;

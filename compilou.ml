@@ -76,13 +76,13 @@ let () =
 	(* Erreur lexicale. On recupere sa position absolue et
 	   on la convertit en numero de ligne *)
 	localisation (Lexing.lexeme_start_p buf);
-	eprintf "Erreur dans l'analyse lexicale: %c@." c;
+	eprintf "Error in lexing: %s@." c;
 	exit 1
     | Parser.Error ->
 	  (* Erreur syntaxique. On recupere sa position absolue et on la
 	   convertit en numero de ligne *)
 	localisation (Lexing.lexeme_start_p buf);
-	eprintf "Erreur dans l'analyse syntaxique@.";
+	eprintf "Error in parsing@.";
 	exit 1
     | Error (msg, pos)->
     (* Erreur d'utilisation de variable pendant la compilation *)
