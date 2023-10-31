@@ -6,6 +6,7 @@ stages:
 .install-utils: &install-utils
   - opam switch
   - opam install dune menhir
+  - apt install spim
   - eval $(opam env)
 
 test:
