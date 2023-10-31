@@ -84,7 +84,7 @@ let () =
 	localisation (Lexing.lexeme_start_p buf);
 	eprintf "Erreur dans l'analyse syntaxique@.";
 	exit 1
-    | Error (msg, pos_lnum)->
+    | Error (msg, pos)->
     (* Erreur d'utilisation de variable pendant la compilation *)
-    eprintf "%s.c:%d: error: %s\n" !iflie pos_lnum msg ;
+    eprintf "%s:%d: %s\n" !ifile pos.pos_lnum msg ;
     exit 1
