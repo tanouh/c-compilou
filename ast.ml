@@ -11,6 +11,7 @@ and stmt_node =
   | Sif of expr*stmt
   | Sinitvar of dtype * left_value * expr
   | Sifelse of expr*stmt*stmt
+  | Sno_op
   (* | Swhile of expr*stmt *)
 and const =
   | Int of string
@@ -32,7 +33,7 @@ and binop = Add | Sub | Mul | Div | Mod | Leq | Le | Geq | Ge | Neq | Eq | And |
 and dtype = Dint | Dvoid
 and farg = dtype * string
 
-type def = { ret_type : dtype ; name : string ; body : stmt option ; args : farg list ; }
+type def = { ret_type : dtype ; name : string ; body : stmt ; args : farg list ; }
 and cprogram = def list
 
 let str_op = function

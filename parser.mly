@@ -51,9 +51,9 @@ arg:
 arg_t = dtype ; name = IDENT; {(arg_t, name)}
 
 def :
-| ret = dtype ; s = IDENT; LP ; args = separated_list(COMMA, arg) ; RP ; SEMICOLON {{ret_type = ret ; name = s ; args = args ; body = None }}
+| ret = dtype ; s = IDENT; LP ; args = separated_list(COMMA, arg) ; RP ; SEMICOLON {{ret_type = ret ; name = s ; args = args ; body = Sno_op,$startpos }}
 | ret = dtype ; s = IDENT ; LP ; args = separated_list(COMMA, arg) ; RP ; LBRACE ; b = suite ; RBRACE
-{{ret_type = ret ; name = s ; args = args ; body = Some (b) }}
+{{ret_type = ret ; name = s ; args = args ; body = b }}
 
 left_value:
 | s = IDENT { Var(s) }

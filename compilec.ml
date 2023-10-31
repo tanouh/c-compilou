@@ -49,7 +49,7 @@ let rec eval_expr hashtable_loc e =
     | None -> raise (Error_no_pos "Undefined value")
     | Some (_k,i) -> i
     )
-  | Ecall (name,expl) -> ( match Hashtbl.find_opt functions name with 
+  | Ecall (name,expl) -> ( match Hashtbl.find_opt functions name with
     | None -> raise (Error_no_pos ("undefined reference to '" ^ name ^"'"))
     | Some (Dvoid, args_l) -> raise (Warning_ret_void (check_call hashtable_loc name (Dvoid, args_l) expl))
     | Some (Dint, args_l) -> check_call hashtable_loc name (Dint, args_l) expl )
@@ -68,31 +68,31 @@ let rec eval_expr hashtable_loc e =
       | Add | Sub | Mul | Div | Mod -> (match (eval_expr hashtable_loc e1, eval_expr hashtable_loc e2) with
         |(Iconst i1 , Iconst i2) ->  Iconst (convert_arith op i1 i2)
         (* on ne fait rien car ce ne sont pas directement deux constantes *)
-        |(ie1,ie2) -> Ibinop (op,ie1,ie2)) 
+        |(ie1,ie2) -> Ibinop (op,ie1,ie2))
       | Leq | Le | Geq | Ge | Neq | Eq -> (match (eval_expr hashtable_loc e1, eval_expr hashtable_loc e2) with
         |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_comp op i1 i2))
         (* idem *)
-        |(ie1,ie2) -> Ibinop (op,ie1,ie2)) 
+        |(ie1,ie2) -> Ibinop (op,ie1,ie2))
       | And | Or -> (match (eval_expr hashtable_loc e1, eval_expr hashtable_loc e2) with
         |(Iconst i1 , Iconst i2) ->  Iconst (int_of_bool (convert_cond op (bool_of_int i1) (bool_of_int i2)))
         (* idem *)
         |(ie1,ie2) -> Ibinop (op,ie1,ie2))
     )
     | _ -> raise (Error_no_pos "pour enlever le warning du pattern martching")
-    ) with 
+    ) with
     | Warning_ret_void i_e-> raise (Error_no_pos ("error: void value not ignored as it ought to be"))
-  
+
 (* vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction*)
-and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl = 
-  let args_compile = (try List.map (eval_expr hashtable_loc) expl with 
+and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
+  let args_compile = (try List.map (eval_expr hashtable_loc) expl with
     | Warning_ret_void i_e -> match name_dtype_args with
       | [] | [Dvoid] -> if List.length expl > 1 then raise (Error_no_pos("error: they are too many arguments to function '"^name^"'"))
       else [i_e]
-      | _ -> raise (Error_no_pos ("wrong arguments for '" ^ name ^"'")) 
+      | _ -> raise (Error_no_pos ("wrong arguments for '" ^ name ^"'"))
   ) in
-  match name with 
+  match name with
     | "print_int" -> Icall("print_int", args_compile)
-    | _ -> match args_compile with 
+    | _ -> match args_compile with
       | [] -> ( match name_dtype_args with
           |[] | [Dvoid] -> Icall(name, args_compile)
           | _ -> raise (Error_no_pos("error: wrong arguments to function '"^name^"'" ))
@@ -145,6 +145,7 @@ let compile_declare hashtable_loc typ x_name =
 (* compile les statements grâce à eval_expr et renvoie des istatements *)
 let rec compile_stmt name hashtable_loc (stmt,pos) = try (
   match stmt with
+  | Sno_op -> No_op
   | Sassign (l,exp) -> compile_assign hashtable_loc exp l
   | Sval e -> (try Ival (eval_expr hashtable_loc e) with
     |Warning_ret_void i_e -> Ival i_e)
@@ -153,9 +154,9 @@ let rec compile_stmt name hashtable_loc (stmt,pos) = try (
   | Sblock b -> Iblock (List.map (compile_stmt name hashtable_loc) b)
   | Sif (cond, stmt) -> compile_if hashtable_loc cond (compile_stmt name hashtable_loc stmt)
   | Sifelse (cond, e_if, e_else) -> compile_if_else hashtable_loc cond (compile_stmt name hashtable_loc e_if) (compile_stmt name hashtable_loc e_else)
-  | Sinitvar (var_type, Var var_name, value) -> 
+  | Sinitvar (var_type, Var var_name, value) ->
     let _ = compile_declare hashtable_loc var_type var_name in
-    (try compile_assign hashtable_loc value (Var var_name) with 
+    (try compile_assign hashtable_loc value (Var var_name) with
       |Warning_ret_void i_e -> raise(Error_no_pos("error: void value not ignored as it ought to be")))
   | Sdeclarevar (typ,Var x) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos ("error: redeclaration of " ^ x ^ " with no linkage"))
     else (
@@ -165,33 +166,33 @@ let rec compile_stmt name hashtable_loc (stmt,pos) = try (
   ) with
     | Error_no_pos s -> raise (Error (s,pos))
 
-(* vérifie que le corps de chaque fonction n'est défini qu'une seul fois 
-   vérifie que chaque fonction n'est déclarée qu'une fois on autorise pas 
+(* vérifie que le corps de chaque fonction n'est défini qu'une seul fois
+   vérifie que chaque fonction n'est déclarée qu'une fois on autorise pas
   int f();
   int f();
 *)
-let verif_declar_function x = match x.body with 
-  | None -> (match Hashtbl.find_opt functions_corps_existe x.name with 
-    | None -> Hashtbl.add functions_corps_existe x.name false 
+let verif_declar_function x = match x.body with
+  | Sno_op,_ -> (match Hashtbl.find_opt functions_corps_existe x.name with
+    | None -> Hashtbl.add functions_corps_existe x.name false
     | Some true -> Hashtbl.add functions_corps_existe x.name true
     | Some false -> raise (Error_no_pos("error: redefinition of " ^ x.name)))
-  | Some x_body -> match Hashtbl.find_opt functions_corps_existe x.name with 
-    | None -> Hashtbl.add functions_corps_existe x.name true 
+  | x_body -> match Hashtbl.find_opt functions_corps_existe x.name with
+    | None -> Hashtbl.add functions_corps_existe x.name true
     | Some false -> Hashtbl.add functions_corps_existe x.name true
     | Some true -> raise (Error_no_pos("error: redefinition of " ^ x.name))
-    
+
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
 let compile_program p ofile =
   load_print_int;
   (* assure la bonne définition de chaque fonction *)
-  List.iter verif_declar_function p ; 
+  List.iter verif_declar_function p ;
   let aux x = (* match Hashtbl.find_opt functions_corps_existe x.name with
     | Some false -> Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
     | Some true -> raise (Error_no_pos ("error: redefinition of " ^ x.name)) (* C ne permet pas de déclarer deux fonctions avec le même nom*)
     else  Hashtbl.add functions x.name (x.ret_type, List.map fst x.args); *) (* ajoute la nouvelle variable gloable/fonction à la table*)
     match x.body with
-    | None -> No_op (* c'est une variables globale *)
-    | Some x_body -> let hashtable_loc = Hashtbl.create 5 in (* créé la table des variables locales à la fonction x.name *)
+    | Sno_op ,pos -> (x.name, 0, 0, No_op) (* c'est une variables globale *)
+    | x_body -> let hashtable_loc = Hashtbl.create 5 in (* créé la table des variables locales à la fonction x.name *)
     List.iteri (fun i (t,name) -> Hashtbl.replace hashtable_loc name (i, Ileft (Ilocal i,4))) x.args; (*declare les arguments, permettant de gérer l'utilisation des arguments comme une variable locale à la fonction*)
     let body = compile_stmt x.name hashtable_loc x_body in
       (x.name, Hashtbl.length hashtable_loc, List.length x.args, body) in
