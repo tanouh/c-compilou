@@ -9,8 +9,4 @@
  (libraries unix)
  (flags ())
 )
-(test
- (name test)
- (modules test)
- (libraries unix)
- (flags ()))
+

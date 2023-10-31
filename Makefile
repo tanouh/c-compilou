@@ -9,9 +9,10 @@ byte:
 clean:
 	@dune clean
 	@rm -f ./main.bc
+	@rm tests/*.s
 
 test:
-	@dune runtest
+	./test.sh
 
 debug: byte
 	@rm -f bin/main.bc
