@@ -5,7 +5,7 @@ stages:
 
 .install-utils: &install-utils
   - opam switch
-  - opam install dune
+  - opam install dune menhir
   - eval $(opam env)
 
 test:
