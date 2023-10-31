@@ -43,7 +43,7 @@ let rec eval_expr hashtable_loc e =
   | Val v -> (match v with
     | Var x -> (match Hashtbl.find_opt hashtable_loc x with
       | None -> raise (Error_no_pos "Undefined value")
-      | Some (_,i) -> i)
+      | Some (_k,i) -> i)
   )
   | Moins e ->
     (match eval_expr hashtable_loc e with
@@ -89,18 +89,21 @@ let rec eval_expr hashtable_loc e =
     else raise (Error_no_pos ("Undefined function "^name))
 
 let compile_if hashtable_loc cond body =
-  let e = eval_expr hashtable_loc cond in
-  match e with
+  match eval_expr hashtable_loc cond with
     | Iconst k -> if k <> 0 then body else No_op
-    | Icall(name,_) -> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iif(e, body)
-    | _ -> Iif(e, body)
+    | Icall(name,_) as e-> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iif(e, body)
+    | _ as e-> Iif(e, body)
 
 let compile_if_else hashtable_loc cond body_if body_else =
-  let e = eval_expr hashtable_loc cond in
-  match e with
+  match eval_expr hashtable_loc cond with
     | Iconst k -> if k <> 0 then body_if else body_else
-    | Icall(name,_) -> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iifelse(e, body_if, body_else)
-    | _ -> Iifelse(e, body_if, body_else)
+    | Icall(name,_) as e-> if fst (Hashtbl.find functions name) <> Dint then raise (Error_no_pos "if condition cannot be of type <void>") else Iifelse(e, body_if, body_else)
+    | _ as e -> Iifelse(e, body_if, body_else)
+
+let compile_assign hashtable_loc x x_num = function
+  | Iconst k as exp_eval ->   Hashtbl.replace hashtable_loc x (x_num, exp_eval); Iassign ((Ilocal x_num, 4) , exp_eval)
+  | _ as exp_eval-> Hashtbl.replace hashtable_loc x (x_num, Ileft (Ilocal x_num, 4)); Iassign ((Ilocal x_num, 4) , exp_eval)
+
 
 (* compile les statements grâce à eval_expr et renvoie des istatements *)
 let rec compile_stmt hashtable_loc (stmt,pos) = try (
@@ -110,8 +113,8 @@ let rec compile_stmt hashtable_loc (stmt,pos) = try (
     | Var x -> if Hashtbl.mem hashtable_loc x then (
       let exp_eval = eval_expr hashtable_loc exp in
       let x_num = fst(Hashtbl.find hashtable_loc x) in
-      Hashtbl.replace hashtable_loc x (x_num, exp_eval) ;
-      Iassign ((Ilocal x_num, 4) , exp_eval)) else raise (Error_no_pos ("Undefined variable "^x)) )
+     compile_assign hashtable_loc x x_num exp_eval)
+    else raise (Error_no_pos ("Undefined variable "^x)))
   | (Sval e) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b) -> Iblock (List.map (compile_stmt hashtable_loc) b)

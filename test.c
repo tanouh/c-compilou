@@ -9,8 +9,11 @@ void print(int a, int b, int c) {
 int f() {
 	int y;
 	y = 0;
-	y = g(10);
-	return y;
+	y = g(10) * 10 + 4;
+	int x;
+	x = y;
+	print_int(g(10) * 10 + 4, y, x);
+	return x;
 }
 
 int main() {
@@ -20,6 +23,6 @@ int main() {
 		print_int(10);
 	else
 		print_int(-10);
-	
+
 	return 0;
 }
