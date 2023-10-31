@@ -185,11 +185,7 @@ let compile_program p ofile =
   load_print_int;
   (* assure la bonne définition de chaque fonction *)
   List.iter verif_declar_function p ;
-  let aux x = (* match Hashtbl.find_opt functions_corps_existe x.name with
-    | Some false -> Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
-    | Some true -> raise (Error_no_pos ("error: redefinition of " ^ x.name)) (* C ne permet pas de déclarer deux fonctions avec le même nom*)
-    else  *) (* ajoute la nouvelle variable gloable/fonction à la table*)
-    Hashtbl.add functions x.name (x.ret_type, List.map fst x.args);
+  let aux x = 
     match x.body with
     | Sno_op ,pos -> if Hashtbl.find functions_corps_existe x.name then Hashtbl.add functions x.name (x.ret_type, List.map fst x.args)
     else raise (Error("error: undefined reference to `" ^ x.name ^ "'", pos)); (x.name, 0, 0, No_op) (* c'est une variables globale *)
