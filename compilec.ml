@@ -71,8 +71,8 @@ let rec eval_expr hashtable_loc e =
     if Hashtbl.mem functions name then (
       let args_compile =  List.map (eval_expr hashtable_loc) expl in (* on compile d'abord les arguments que prends la fonction name*)
       if (List.map (fun x -> match x with 
-          | Icall( s , expr_l) -> fst Hashtbl.find s functions 
-          | _ -> Dint ) args_compile = (snd (Hashtbl.find name functions) )) then 
+        | Icall( s , expr_l) -> fst (Hashtbl.find functions s )
+        | _ -> Dint ) args_compile = snd (Hashtbl.find functions name) ) then
         Icall(name, args_compile)
       else 
         raise (Error_no_pos (" wrong arguments for " ^ name))
@@ -85,14 +85,17 @@ let rec compile_stmt hashtable_loc (stmt,_pos) = try (
     (match l with
     | Var x -> if Hashtbl.mem hashtable_loc x then (
       let exp_eval = eval_expr hashtable_loc exp in 
-      let x_num = Hashtbl.find x in 
+      let x_num = Hashtbl.find hashtable_loc x in 
       Hashtbl.replace hashtable_loc x (x_num, exp_eval) ;
       Iassign ((Ilocal x_num, 4) , exp_eval)) else raise (Error_no_pos ("Undefined variable "^x)) )
   | (Sval e , pos) -> Ival (eval_expr hashtable_loc e)
   | (Sreturn e , pos) ->  Ireturn (eval_expr hashtable_loc e)
   | (Sblock b , pos) -> Iblock (List.map (compile_stmt hashtable_loc) (List.map (fun x -> (x,pos)) b))
-  | (Sdeclarevar (typ,Var x) , pos) -> if typ = Dint then (Hashtbl.replace hashtable_loc x (fst Hashtbl.find x, IUndef) ; No_op )
-    else raise (Error_no_pos (x ^ " canno't be of type <void>")) (* Assignement de variable à définir*)
+  | (Sdeclarevar (typ,Var x) , pos) -> if Hashtbl.mem hashtable_loc x then raise (Error_no_pos "error: redeclaration of " ^ x ^ " with no linkage")
+    else (
+      if typ = Dint then (Hashtbl.add hashtable_loc x (Hashtbl.length hashtable_loc, IUndef) ; No_op )
+      else raise (Error_no_pos (x ^ " canno't be of type <void>")) 
+      )(* Assignement de variable à définir*)
   ) with 
     | Error_no_pos s -> Error (s,pos)
   (* | _ -> raise (Error_no_pos "à faire") *)
