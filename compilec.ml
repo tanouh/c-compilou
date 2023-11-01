@@ -53,23 +53,20 @@ let rec eval_expr hashtable_loc e =
   | Ecall (name, expl) -> (
       match Hashtbl.find_opt functions name with
       | None -> raise (Error_no_pos ("undefined reference to '" ^ name ^ "'"))
+      (* Aucune opération n'est permise sur des void, on raise donc un Warning donc le cas où une fonction retourne un void.
+         Cela permet de ratrapper le warning lors d'une opération quelconque sas avoir à compiler tout 
+         check_call vérifie le bon fonctionnement des appels de fonction entre arguments attendus et arguments reçus*)
       | Some (Dvoid, args_l) ->
           raise
             (Warning_ret_void
                (check_call hashtable_loc name (Dvoid, args_l) expl))
       | Some (Dint, args_l) -> check_call hashtable_loc name (Dint, args_l) expl
       )
-  | e -> (
+  | e -> ( (* on ratrappe le Warning_ret_void d'une fonction renvoyant un void *)
       try
         match e with
-        | Moins e -> (
-            match eval_expr hashtable_loc e with
-            | Iconst c -> Iconst (-1 * c)
-            | _ -> raise (Error_no_pos "Invalid expression"))
-        | Not n -> (
-            match eval_expr hashtable_loc n with
-            | Iconst c -> if c = 0 then Iconst 1 else Iconst 0
-            | _ -> raise (Error_no_pos "Invalid expression"))
+        | Moins e -> Imoins ( eval_expr hashtable_loc e )
+        | Not n ->  Inot ( eval_expr hashtable_loc n )
         | Op (op, e1, e2) -> (
             match op with
             | Add | Sub | Mul | Div | Mod -> (
@@ -264,14 +261,15 @@ let compile_program p ofile =
   (* assure la bonne définition de chaque fonction *)
   List.iter verif_declar_function p;
   let aux x =
-    (* ajoute la nouvelle variable gloable/fonction à la table*)
+    (* ajoute la nouvelle fonction à la table*)
     Hashtbl.replace functions x.name (x.ret_type, List.map fst x.args);
     match x.body with
     | Sno_op, pos ->
         if Hashtbl.find functions_corps_existe x.name then (x.name, 0, 0, No_op)
-        else
+        else 
+          (* cas où le corps de la fonction x.name n'a pas été défini dans aucune des def, de la def list 
+             ce que C ne permet pas *)
           raise (Error ("error: undefined reference to `" ^ x.name ^ "'", pos))
-    (* c'est une variables globale *)
     | x_body ->
         let hashtable_loc = Hashtbl.create 5 in
         (* créé la table des variables locales à la fonction x.name *)
