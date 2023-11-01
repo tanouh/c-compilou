@@ -128,7 +128,7 @@ and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
   | [ Icall (other_name, other_args) ]
     when fst (Hashtbl.find functions other_name) = Dvoid -> (
       match name_dtype_args with
-      | [] when name = "print_int" -> raise (Error("error: wrong arguments to function '" ^ name ^ "'"))
+      | [] when name = "print_int" -> raise (Error_no_pos("error: wrong arguments to function '" ^ name ^ "'"))
       | [] | [ Dvoid ] -> Icall (name, args_compile)
       | _ ->
           raise
