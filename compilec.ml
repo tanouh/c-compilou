@@ -209,7 +209,7 @@ let rec compile_stmt name hashtable_loc (stmt, pos) =
     | Sassign (l, exp) -> compile_assign hashtable_loc exp l
     | Sval e -> (
         try Ival (eval_expr hashtable_loc e)
-        with Warning_ret_void i_e -> Ival i_e)
+        with Warning_ret_void i_e -> Ival i_e) (*le type de retour est un void et peut poser probleme*)
     | Sreturn e -> (
         try Ireturn (eval_expr hashtable_loc e)
         with Warning_ret_void i_e ->
@@ -222,6 +222,7 @@ let rec compile_stmt name hashtable_loc (stmt, pos) =
         compile_if_else hashtable_loc cond
           (compile_stmt name hashtable_loc e_if)
           (compile_stmt name hashtable_loc e_else)
+        (* initvar = declarevar + assign*)
     | Sinitvar (var_type, Var var_name, value) -> (
         let _ = compile_declare hashtable_loc var_type var_name in
         try compile_assign hashtable_loc value (Var var_name)
