@@ -11,7 +11,7 @@ Un mini compilateur C en Ocaml réalisé dans le cadre d'un cours à Telecom Par
 
 ## Extensions de base
 
-- Un seul type : ``int``
+- Deux types : ``int``
 - Les fonctions (prenant des arguments et retournant des valeurs)
 - if et if-else avec ou sans accolades
 - arithmetique basique (``+``,``-``,``*``,``/``,``%``), comparaisons (``==``, ``<``, ``<=``, ``>``, ``>=``)
@@ -21,6 +21,7 @@ and logique (``&&``, ``||``)
 
 ## Extensions supplementaires
 
+- type ``void``
 - Messages d'erreurs precis
 - Commentaires
 - Fonctions sans retour
