@@ -70,7 +70,8 @@ and compile_i_left_value (ipos, size) =
   | Ideref p -> []
 
 and compile_i_const_value k = [ Li (V 0, k) ]
-and compile_i_unop v = compile_i_expr v @ [ Arithi (Mul, V 0, V 0, -1) ]
+and compile_i_moins v = compile_i_expr v @ [ Arithi (Mul, V 0, V 0, -1) ]
+and compile_i_not v = compile_i_expr v @ [ Sltu (V 0, V 0, 1) ]
 
 and compile_i_op (op : Ast.binop) =
   match op with
@@ -125,7 +126,8 @@ and compile_i_args =
 and compile_i_expr = function
   | Iconst k -> compile_i_const_value k
   | Ileft lv -> compile_i_left_value lv
-  | Iunop v -> compile_i_unop v
+  | Imoins v -> compile_i_moins v
+  | Inot v -> compile_i_not v
   | Ibinop (op, a, b) -> compile_i_binop op a b
   | IUndef -> failwith "Not done"
   | Icall (label, args) -> (
