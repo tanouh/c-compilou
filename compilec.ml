@@ -99,9 +99,12 @@ let rec eval_expr hashtable_loc e =
       with Warning_ret_void i_e ->
         raise (Error_no_pos "error: void value not ignored as it ought to be"))
 
-(* vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction*)
+(* Vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction *)
 and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
   let args_compile =
+    (* si dans les arguments il y a un void, il faut verifier : 
+        1. que la liste des arguments donnés à name est au plus de taille 1 
+        2. que la liste des arguments attendus par name est au plus de taille 1 et, si c'est le cas, contient au plus Dvoid *)
     try List.map (eval_expr hashtable_loc) expl
     with Warning_ret_void i_e -> (
       match name_dtype_args with
@@ -114,39 +117,37 @@ and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
           else [ i_e ]
       | _ -> raise (Error_no_pos ("wrong arguments for '" ^ name ^ "'")))
   in
-  match name with
-  | "print_int" -> Icall ("print_int", args_compile)
-  | _ -> (
-      match args_compile with
-      | [] -> (
-          match name_dtype_args with
-          | [] | [ Dvoid ] -> Icall (name, args_compile)
-          | _ ->
-              raise
-                (Error_no_pos
-                   ("error: wrong arguments to function '" ^ name ^ "'")))
-      | [ Icall (other_name, other_args) ]
-        when fst (Hashtbl.find functions other_name) = Dvoid -> (
-          match name_dtype_args with
-          | [] | [ Dvoid ] -> Icall (name, args_compile)
-          | _ ->
-              raise
-                (Error_no_pos
-                   ("error: wrong arguments to function '" ^ name ^ "'")))
+  match args_compile with
+  | [] -> (
+      match name_dtype_args with
+      | [] | [ Dvoid ] -> Icall (name, args_compile)
       | _ ->
-          if List.length expl = List.length (snd (Hashtbl.find functions name))
-          then Icall (name, args_compile)
-          else if
-            List.length expl < List.length (snd (Hashtbl.find functions name))
-          then
-            raise
-              (Error_no_pos
-                 ("error: they are too few arguments to function '" ^ name ^ "'"))
-          else
-            raise
-              (Error_no_pos
-                 ("error: they are too many arguments to function '" ^ name
-                ^ "'")))
+          raise
+            (Error_no_pos
+                ("error: wrong arguments to function '" ^ name ^ "'")))
+  | [ Icall (other_name, other_args) ]
+    when fst (Hashtbl.find functions other_name) = Dvoid -> (
+      match name_dtype_args with
+      | [] when name = "print_int" -> raise (Error("error: wrong arguments to function '" ^ name ^ "'"))
+      | [] | [ Dvoid ] -> Icall (name, args_compile)
+      | _ ->
+          raise
+            (Error_no_pos
+                ("error: wrong arguments to function '" ^ name ^ "'")))
+  | _ ->
+      if List.length expl = List.length (snd (Hashtbl.find functions name))
+      then Icall (name, args_compile)
+      else if
+        List.length expl < List.length (snd (Hashtbl.find functions name))
+      then
+        raise
+          (Error_no_pos
+              ("error: they are too few arguments to function '" ^ name ^ "'"))
+      else
+        raise
+          (Error_no_pos
+              ("error: they are too many arguments to function '" ^ name
+            ^ "'"))
 
 let compile_if hashtable_loc cond body =
   match eval_expr hashtable_loc cond with
