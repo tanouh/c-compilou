@@ -20,7 +20,6 @@
 
 /* Definitions des priorites et associativites des tokens */
 
-%right EQ
 %left OR AND
 %nonassoc EQQ NEQ
 %left PLUS MINUS

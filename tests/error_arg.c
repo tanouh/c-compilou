@@ -1,3 +1,3 @@
 int main (){
-    int x = print_int(print_int(10));
+    print_int(print_int(10));
 }

@@ -62,11 +62,12 @@ let rec eval_expr hashtable_loc e =
                (check_call hashtable_loc name (Dvoid, args_l) expl))
       | Some (Dint, args_l) -> check_call hashtable_loc name (Dint, args_l) expl
       )
-  | e -> ( (* on ratrappe le Warning_ret_void d'une fonction renvoyant un void *)
+  | e -> (
+      (* on ratrappe le Warning_ret_void d'une fonction renvoyant un void *)
       try
         match e with
-        | Moins e -> Imoins ( eval_expr hashtable_loc e )
-        | Not n ->  Inot ( eval_expr hashtable_loc n )
+        | Moins e -> Imoins (eval_expr hashtable_loc e)
+        | Not n -> Inot (eval_expr hashtable_loc n)
         | Op (op, e1, e2) -> (
             match op with
             | Add | Sub | Mul | Div | Mod -> (
@@ -123,36 +124,38 @@ and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
       | [] | [ Dvoid ] -> Icall (name, args_compile)
       | _ ->
           raise
-            (Error_no_pos
-                ("error: wrong arguments to function '" ^ name ^ "'")))
+            (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
+      )
   | [ Icall (other_name, other_args) ]
     when fst (Hashtbl.find functions other_name) = Dvoid -> (
       match name_dtype_args with
-      | [] when name = "print_int" -> raise (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
+      | [] when name = "print_int" ->
+          raise
+            (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
       | [] | [ Dvoid ] -> Icall (name, args_compile)
       | _ ->
           raise
-            (Error_no_pos
-                ("error: wrong arguments to function '" ^ name ^ "'")))
-  | _ when name = "print_int" -> Icall(name, args_compile)
+            (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
+      )
+  | _ when name = "print_int" -> Icall (name, args_compile)
   | _ ->
-      if List.length expl = List.length (snd (Hashtbl.find functions name))
-      then Icall (name, args_compile)
-      else if
-        List.length expl < List.length (snd (Hashtbl.find functions name))
+      if List.length expl = List.length (snd (Hashtbl.find functions name)) then
+        Icall (name, args_compile)
+      else if List.length expl < List.length (snd (Hashtbl.find functions name))
       then
         raise
           (Error_no_pos
-              ("error: they are too few arguments to function '" ^ name ^ "'"))
+             ("error: they are too few arguments to function '" ^ name ^ "'"))
       else
         raise
           (Error_no_pos
-              ("error: they are too many arguments to function '" ^ name
-            ^ "'"))
+             ("error: they are too many arguments to function '" ^ name ^ "'"))
 
 let compile_if hashtable_loc cond body =
   match eval_expr hashtable_loc cond with
+  (*optimisation : si k <> 0 alors on met body directement sinon rien*)
   | Iconst k -> if k <> 0 then body else No_op
+  (*verifie que le retour de la fonction dans la condition est bien un int et pas un void*)
   | Icall (name, _) as e ->
       if fst (Hashtbl.find functions name) <> Dint then
         raise (Error_no_pos "if condition cannot be of type <void>")
@@ -161,8 +164,10 @@ let compile_if hashtable_loc cond body =
 
 let compile_if_else hashtable_loc cond body_if body_else =
   match eval_expr hashtable_loc cond with
+  (*optimisation : si k <> 0 alors on met body_if directement sinon body_else*)
   | Iconst k -> if k <> 0 then body_if else body_else
   | Icall (name, _) as e ->
+      (*verifie que le retour de la fonction dans la condition est bien un int et pas un void*)
       if fst (Hashtbl.find functions name) <> Dint then
         raise (Error_no_pos "if condition cannot be of type <void>")
       else Iifelse (e, body_if, body_else)
@@ -243,15 +248,12 @@ let verif_declar_function x =
   match x.body with
   | Sno_op, _ -> (
       match Hashtbl.find_opt functions_corps_existe x.name with
-      | None ->
-          Hashtbl.add functions_corps_existe x.name false;
+      | None -> Hashtbl.add functions_corps_existe x.name false
       | _ -> raise (Error_no_pos ("error: redefinition of " ^ x.name)))
   | x_body -> (
       match Hashtbl.find_opt functions_corps_existe x.name with
-      | None ->
-          Hashtbl.add functions_corps_existe x.name true;
-      | Some false ->
-          Hashtbl.add functions_corps_existe x.name true;
+      | None -> Hashtbl.add functions_corps_existe x.name true
+      | Some false -> Hashtbl.add functions_corps_existe x.name true
       | Some true -> raise (Error_no_pos ("error: redefinition of " ^ x.name)))
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
