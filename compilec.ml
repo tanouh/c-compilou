@@ -54,7 +54,7 @@ let rec eval_expr hashtable_loc e =
       match Hashtbl.find_opt functions name with
       | None -> raise (Error_no_pos ("undefined reference to '" ^ name ^ "'"))
       (* Aucune opération n'est permise sur des void, on raise donc un Warning donc le cas où une fonction retourne un void.
-         Cela permet de ratrapper le warning lors d'une opération quelconque sas avoir à compiler tout 
+         Cela permet de ratrapper le warning lors d'une opération quelconque sas avoir à compiler tout
          check_call vérifie le bon fonctionnement des appels de fonction entre arguments attendus et arguments reçus*)
       | Some (Dvoid, args_l) ->
           raise
@@ -62,11 +62,12 @@ let rec eval_expr hashtable_loc e =
                (check_call hashtable_loc name (Dvoid, args_l) expl))
       | Some (Dint, args_l) -> check_call hashtable_loc name (Dint, args_l) expl
       )
-  | e -> ( (* on ratrappe le Warning_ret_void d'une fonction renvoyant un void *)
+  | e -> (
+      (* on ratrappe le Warning_ret_void d'une fonction renvoyant un void *)
       try
         match e with
-        | Moins e -> Imoins ( eval_expr hashtable_loc e )
-        | Not n ->  Inot ( eval_expr hashtable_loc n )
+        | Moins e -> Imoins (eval_expr hashtable_loc e)
+        | Not n -> Inot (eval_expr hashtable_loc n)
         | Op (op, e1, e2) -> (
             match op with
             | Add | Sub | Mul | Div | Mod -> (
@@ -102,8 +103,8 @@ let rec eval_expr hashtable_loc e =
 (* Vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction *)
 and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
   let args_compile =
-    (* si dans les arguments il y a un void, il faut verifier : 
-        1. que la liste des arguments donnée à name est au plus de taille 1 
+    (* si dans les arguments il y a un void, il faut verifier :
+        1. que la liste des arguments donnée à name est au plus de taille 1
         2. que la liste des arguments attendue par name est au plus de taille 1 et, si c'est le cas, contient au plus un seul Dvoid *)
     try List.map (eval_expr hashtable_loc) expl
     with Warning_ret_void i_e -> (
@@ -127,40 +128,40 @@ and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
       (* Sinon name attend plusieurs arguments et ces derniers sont donc tous de type int nécessairement en C *)
       | _ ->
           raise
-            (Error_no_pos
-                ("error: wrong arguments to function '" ^ name ^ "'")))
+            (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
+      )
   (* 2ème cas *)
   | [ Icall (other_name, other_args) ]
     when fst (Hashtbl.find functions other_name) = Dvoid -> (
       match name_dtype_args with
       (* La fonction print_int ne prend pas de void en argument
-        mais puisqu'elle prend un nombre d'argument, aussi long que l'on veut, 
-        par convention name_dtype_args = [] 
-        qui correspond en C à une fonction prenant en argument un void *)
-      | [] when name = "print_int" -> raise (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
+         mais puisqu'elle prend un nombre d'argument, aussi long que l'on veut,
+         par convention name_dtype_args = []
+         qui correspond en C à une fonction prenant en argument un void *)
+      | [] when name = "print_int" ->
+          raise
+            (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
       (* Sinon aucun soucis la fonction name attend bien un void en argument *)
       | [] | [ Dvoid ] -> Icall (name, args_compile)
       | _ ->
           raise
-            (Error_no_pos
-                ("error: wrong arguments to function '" ^ name ^ "'")))
+            (Error_no_pos ("error: wrong arguments to function '" ^ name ^ "'"))
+      )
   (* Pour print_int on ne fait pas attention au nombre d'argument si ils sont tous des int *)
-  | _ when name = "print_int" -> Icall(name, args_compile)
+  | _ when name = "print_int" -> Icall (name, args_compile)
   (* Sinon, il faut vérifier qu'il y a autant d'arguments donnés à name, que d'arguments que name attend *)
   | _ ->
-      if List.length expl = List.length (snd (Hashtbl.find functions name))
-      then Icall (name, args_compile)
-      else if
-        List.length expl < List.length (snd (Hashtbl.find functions name))
+      if List.length expl = List.length (snd (Hashtbl.find functions name)) then
+        Icall (name, args_compile)
+      else if List.length expl < List.length (snd (Hashtbl.find functions name))
       then
         raise
           (Error_no_pos
-              ("error: they are too few arguments to function '" ^ name ^ "'"))
+             ("error: they are too few arguments to function '" ^ name ^ "'"))
       else
         raise
           (Error_no_pos
-              ("error: they are too many arguments to function '" ^ name
-            ^ "'"))
+             ("error: they are too many arguments to function '" ^ name ^ "'"))
 
 let compile_if hashtable_loc cond body =
   match eval_expr hashtable_loc cond with
@@ -183,7 +184,7 @@ let compile_if_else hashtable_loc cond body_if body_else =
         raise (Error_no_pos "if condition cannot be of type <void>")
       else Iifelse (e, body_if, body_else)
   | _ as e -> Iifelse (e, body_if, body_else)
-            
+
 let compile_assign hashtable_loc exp =
   let aux x x_num = function
     | Iconst k as exp_eval ->
@@ -220,7 +221,8 @@ let rec compile_stmt name hashtable_loc (stmt, pos) =
     | Sassign (l, exp) -> compile_assign hashtable_loc exp l
     | Sval e -> (
         try Ival (eval_expr hashtable_loc e)
-        with Warning_ret_void i_e -> Ival i_e) (*le type de retour est un void et peut poser probleme*)
+        with Warning_ret_void i_e ->
+          Ival i_e (*le type de retour est un void et peut poser probleme*))
     | Sreturn e -> (
         try Ireturn (eval_expr hashtable_loc e)
         with Warning_ret_void i_e ->
@@ -261,7 +263,7 @@ let verif_declar_function x =
   | Sno_op, _ -> (
       match Hashtbl.find_opt functions_corps_existe x.name with
       (* Première défintion de x.name mais sans corps pour le moment *)
-      | None -> Hashtbl.add functions_corps_existe x.name false 
+      | None -> Hashtbl.add functions_corps_existe x.name false
       | _ -> raise (Error_no_pos ("error: redefinition of " ^ x.name)))
   | x_body -> (
       match Hashtbl.find_opt functions_corps_existe x.name with
@@ -282,7 +284,7 @@ let compile_program p ofile =
     match x.body with
     | Sno_op, pos ->
         if Hashtbl.find functions_corps_existe x.name then (x.name, 0, 0, No_op)
-        else 
+        else
           (* x.name est définie mais son corps est défini nulle part dans la def list *)
           raise (Error ("error: undefined reference to `" ^ x.name ^ "'", pos))
     | x_body ->

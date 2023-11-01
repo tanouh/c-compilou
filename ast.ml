@@ -3,7 +3,6 @@ type pos = Lexing.position
 type stmt = stmt_node * pos
 
 and stmt_node =
-  (* | Sfor of string*expr*stmt *)
   | Sblock of stmt list
   | Sreturn of expr
   | Sassign of left_value * expr
@@ -13,13 +12,8 @@ and stmt_node =
   | Sinitvar of dtype * left_value * expr
   | Sifelse of expr * stmt * stmt
   | Sno_op
-(* | Swhile of expr*stmt *)
 
 and const = Int of string
-
-(* | Str of string
-   | Bool of bool *)
-(* | Non *)
 and left_value = Var of string
 
 and expr =

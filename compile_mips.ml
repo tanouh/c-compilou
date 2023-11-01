@@ -111,7 +111,6 @@ and compile_i_assign (l, e) =
   | Iglobal label -> tmp @ [ Sw (V 0, Alab label) ]
   | Ideref p -> tmp @ []
 
-(**)
 and compile_i_args =
   (*compile les ai*)
   let rec loop_ai i = function
