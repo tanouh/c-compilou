@@ -20,7 +20,8 @@ and i_pos =
   | Ideref of i_expr (* for pointers *)
 
 and i_expr =
-  | Iunop of i_expr
+  | Imoins of i_expr
+  | Inot of i_expr
   | Ibinop of binop * i_expr * i_expr
   | Icall of string * i_expr list (* label *)
   | Ileft of i_left_value
