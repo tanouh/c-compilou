@@ -54,7 +54,7 @@ let rec eval_expr hashtable_loc e =
       match Hashtbl.find_opt functions name with
       | None -> raise (Error_no_pos ("undefined reference to '" ^ name ^ "'"))
       (* Aucune opération n'est permise sur des void, on raise donc un Warning donc le cas où une fonction retourne un void.
-         Cela permet de ratrapper le warning lors d'une opération quelconque sas avoir à compiler tout 
+         Cela permet de ratrapper le warning lors d'une opération quelconque sas avoir à compiler tout
          check_call vérifie le bon fonctionnement des appels de fonction entre arguments attendus et arguments reçus*)
       | Some (Dvoid, args_l) ->
           raise
@@ -102,8 +102,8 @@ let rec eval_expr hashtable_loc e =
 (* Vérifie que la fonction est définie et que les arguments expl correspondent à ceux attendu par la fonction *)
 and check_call hashtable_loc name (name_ret_type, name_dtype_args) expl =
   let args_compile =
-    (* si dans les arguments il y a un void, il faut verifier : 
-        1. que la liste des arguments donnés à name est au plus de taille 1 
+    (* si dans les arguments il y a un void, il faut verifier :
+        1. que la liste des arguments donnés à name est au plus de taille 1
         2. que la liste des arguments attendus par name est au plus de taille 1 et, si c'est le cas, contient au plus Dvoid *)
     try List.map (eval_expr hashtable_loc) expl
     with Warning_ret_void i_e -> (
@@ -245,16 +245,13 @@ let verif_declar_function x =
       match Hashtbl.find_opt functions_corps_existe x.name with
       | None ->
           Hashtbl.add functions_corps_existe x.name false;
-          print_string (x.name ^ "\tno_op\n")
       | _ -> raise (Error_no_pos ("error: redefinition of " ^ x.name)))
   | x_body -> (
       match Hashtbl.find_opt functions_corps_existe x.name with
       | None ->
           Hashtbl.add functions_corps_existe x.name true;
-          print_string (x.name ^ "\tadd body\n")
       | Some false ->
           Hashtbl.add functions_corps_existe x.name true;
-          print_string (x.name ^ "\tadd body\n")
       | Some true -> raise (Error_no_pos ("error: redefinition of " ^ x.name)))
 
 (* Compile le programme p et enregistre le code dans le fichier ofile *)
@@ -268,8 +265,8 @@ let compile_program p ofile =
     match x.body with
     | Sno_op, pos ->
         if Hashtbl.find functions_corps_existe x.name then (x.name, 0, 0, No_op)
-        else 
-          (* cas où le corps de la fonction x.name n'a pas été défini dans aucune des def, de la def list 
+        else
+          (* cas où le corps de la fonction x.name n'a pas été défini dans aucune des def, de la def list
              ce que C ne permet pas *)
           raise (Error ("error: undefined reference to `" ^ x.name ^ "'", pos))
     | x_body ->

@@ -178,8 +178,6 @@ and compile_i_if_else is_main nb_var cond b_if b_else =
   @ [ Label (jlabel !label_cnt) ]
 
 let allocate_args nb_args =
-  print_int nb_args;
-  print_newline ();
   let rec loop_ai i stop =
     if i >= stop then []
     else [ Sw (A i, get_var_addr 4 i) ] @ loop_ai (i + 1) stop
